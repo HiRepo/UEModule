@@ -93,6 +93,9 @@ namespace TL{
 			for( UMaterialInterface* pMat : arrMaterialInterface )
 			{
 				pMat = Cast<T>( pMat );
+				if( pMat == nullptr )
+					continue;
+
 				FString sCurBaseMatName = pMat->GetBaseMaterial()->GetName();
 				if( pMat && (BaseName == NAME_None || BaseName == sCurBaseMatName))
 					rOutArray.Push(pMat);
