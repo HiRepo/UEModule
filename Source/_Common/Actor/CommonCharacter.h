@@ -9,7 +9,7 @@ class UJobAniTransform;
 class UJobBehaviorTree;
 class ACommonAIController;
 
-UCLASS()
+UCLASS(ClassGroup=(Common,Actor))
 class _COMMON_API ACommonCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -72,11 +72,11 @@ protected :
 //		virtual void PostDuplicate(bool bDuplicateForPIE) override;
 //		virtual void PostLoad() override;
 //		virtual void PostInitializeComponents() override;
-	virtual void PostLoadSubobjects(FObjectInstancingGraph* OuterInstanceGraph) override;
+	virtual void PostLoadSubobjects( FObjectInstancingGraph* pOuterInstanceGraph ) override;
 
 
 #if WITH_EDITOR
-	virtual void PostEditChangeChainProperty( struct FPropertyChangedChainEvent& PropertyChangedEvent ) override;
+	virtual void PostEditChangeChainProperty( struct FPropertyChangedChainEvent& rPropertyChangedEvent ) override;
 #endif
 
 

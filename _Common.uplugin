@@ -6,7 +6,7 @@
 	"VersionName" : "0.1",
 	"Description" : "Support for Game",
 	"EnabledByDefault" : true,
-	"CanContainContent" : false,
+	"CanContainContent" : true,
 	"IsBetaVersion" : false,
 	"Installed" : true,
 	"RequiresBuildPlatform" : false,

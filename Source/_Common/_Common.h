@@ -141,47 +141,50 @@ struct NullFilter
 		}
 
 		template <class TFilter=NullFilter>
-		static bool GetAll( UWorld* pWorld, TArray<T*>& rOutArray, TFilter filter = NullFilter())
+		static void GetAll( UWorld* pWorld, TArray<T*>& rOutArray, TFilter filter = NullFilter())
 		{
 			type_assert( T, AActor ); 
 			if( nullptr == pWorld )
-				return false;
-			const int _arrayNum = rOutArray.Num();
+				return ;
 			for( TActorIterator<T> It( pWorld, T::StaticClass()); It; ++It )
 			{
 				T* pActor = *It;
 				if( filter(pActor) && false == pActor->IsPendingKill() )
 					rOutArray.Add( pActor );
 			}
-			return _arrayNum < rOutArray.Num();
 		}
 	};
 
 	template< class T >
 	struct Actor<T,true>			// Only Interface
 	{
-		static bool GetAll( UWorld* pWorld, TArray<T*>& rOutArray )
+		static void GetAll( UWorld* pWorld, TArray<T*>& rOutArray )
 		{
 			if( nullptr == pWorld )
-				return false;
+				return ;
 
-			const int _arrayNum = rOutArray.Num();
 			for( FActorIterator It(pWorld); It; ++It )
 			{
 				AActor* pActor = *It;
 				if( pActor && !pActor->IsPendingKill() && pActor->GetClass()->ImplementsInterface(T::StaticClass()) )
 					rOutArray.Add( pActor );
 			}
-			return _arrayNum < rOutArray.Num();
 		}
 	};
 
 
 
 //-----------------------------------------------------------------------------------
+//		enum ECreateType
+//		{
+//			Object,
+//			Actor,
+//			Component,				// RegiterComponent() Function append.
+//		};
+	
 
 //	template< class T, bool = std::is_base_of<AActor,T>::value >
-	template< class T, bool = IsBaseOf<T,AActor>::Val >
+	template<class T, bool = IsBaseOf<T,AActor>::Val>
 	struct Create
 	{
 		FORCEINLINE
@@ -235,7 +238,6 @@ struct NullFilter
 			T* pComponent = NewObject<T>( pParent, T::StaticClass(), name );
 			if( nullptr == pComponent )
 				return nullptr;
-				
 //				pComponent->SetupAttachment( pParent );
 			return pComponent;
 		}
@@ -291,124 +293,94 @@ struct NullFilter
 			arrChildren.Add( pRootComponent );
 			for( USceneComponent* pChild : arrChildren )
 			{
-				if( pChild->IsA( T::StaticClass() ) && filter( pChild ) )
-					return (T*)pChild;
+				T* pCast = Cast<T>( pChild );
+				if( pCast && filter( pCast ) )
+					return pCast;
 			}
 			return nullptr;
 		}
 
 		template <class TFilter=NullFilter>
-		static T* Get( USceneComponent* pRootComponent, FName tag, TFilter filter = NullFilter())
-		{
-			return Get( pRootComponent, [&]( T* pComp ){
-				return pComp->ComponentHasTag(tag);	});
-		}
-
-		template <class TFilter=NullFilter>
-		static bool GetAll( USceneComponent* pRootComponent, TArray<T*>& rOutArray, TFilter filter = NullFilter())
+		static void GetAll( USceneComponent* pRootComponent, TArray<T*>& rOutArray, TFilter filter = NullFilter())
 		{
 			type_assert( T, USceneComponent ); 
 			if( nullptr == pRootComponent )
-				return false ;
-			const int _arrayNum = rOutArray.Num();
+				return ;
 
 			TArray<USceneComponent*> arrChildren;
 			pRootComponent->GetChildrenComponents( true, arrChildren );
 			arrChildren.Add( pRootComponent );
 			for( USceneComponent* pChild : arrChildren )
 			{
-				if( pChild->IsA( T::StaticClass() ) && filter( pChild ) )
-					rOutArray.Add( (T*)pChild );
+				T* pCast = Cast<T>( pChild );
+				if( pCast && filter( pCast ) )
+					rOutArray.Add( pCast );
 			}
-			return _arrayNum < rOutArray.Num();
 		}
 
 
 		template <class TFilter=NullFilter>
-		static bool GetAll( USceneComponent* pRootComponent, TArray<T*>& rOutArray, FName tag, TFilter filter = NullFilter())
-		{
-			return GetAll( pRootComponent, rOutArray, [&]( T* pComp ){
-				return pComp->ComponentHasTag(tag);	});
-		}
-
-		static T* Get( AActor* pActor )
+		static T* Get( AActor* pActor, TFilter filter = NullFilter() )
 		{
 			type_assert( T, UActorComponent ); 
 			if( nullptr == pActor )
 				return nullptr;
-			return	pActor->FindComponentByClass<T>();
+			T* pComponent = pActor->FindComponentByClass<T>();
+			return (pComponent && filter(pComponent)) ? pComponent : nullptr;
 		}
 
-		static bool GetAll( AActor* pActor, TArray<T*>& rOutArray, FName tag = NAME_None )
+		template <class TFilter=NullFilter>
+		static void GetAll( AActor* pActor, TArray<T*>& rOutArray, TFilter filter = NullFilter() )
 		{
 			type_assert( T, UActorComponent );
 			if( nullptr == pActor )
-				return false ;
+				return ;
 
-			const int _arrayNum = rOutArray.Num();
-
-			if( tag == NAME_None )
-				pActor->GetComponents( rOutArray );
-			else
+			const TSet<UActorComponent*>& _rCompoenents = pActor->GetComponents();
+			for( UActorComponent* pComponent : _rCompoenents )
 			{
-				const TSet<UActorComponent*>& _rCompoenents = pActor->GetComponents();
-				for( UActorComponent* pComponent : _rCompoenents )
-				{
-					T* pCast = Cast<T>( pComponent );
-
-					if(  (pCast && pCast->ComponentHasTag(tag)) )
-						rOutArray.Push( pCast );
-				}
+				T* pCast = Cast<T>( pComponent );
+				if( pCast && filter( pCast ) )
+					rOutArray.Add( pCast );
 			}
-			return _arrayNum < rOutArray.Num();
 		}
 
 
-		static bool GetActors( const TArray<T*>& rInCompArray, TArray<AActor*>& rOutArray, UClass* pActorFilter=nullptr )
+		template <class TFilter=NullFilter>
+		static void GetActors( const TArray<T*>& rInCompArray, TArray<AActor*>& rOutArray, UClass* pActorFilter=nullptr, TFilter filter = NullFilter())
 		{
-			const int _arrayNum = rOutArray.Num();
 			for( T* const  _pComp : rInCompArray )
 			{
 				if( AActor* pOwner = _pComp->GetOwner() )
 				{
-					if( ( nullptr == pActorFilter || pOwner->IsA(pActorFilter) ) )
+					if( ( nullptr == pActorFilter || pOwner->IsA(pActorFilter) ) && filter( pOwner ) )
 						rOutArray.AddUnique( pOwner );
 				}
 			}
-			return _arrayNum < rOutArray.Num();
 		}
 
-		template<class TFuncFilter>
-		static bool GetActors( const TArray<T*>& rInCompArray, TArray<AActor*>& rOutArray, UClass* pActorFilter, TFuncFilter Filter )
+
+		template <class TFilter=NullFilter>
+		static T* Tag( USceneComponent* pRootComponent, FName tag, TFilter filter = NullFilter())
 		{
-			const int _arrayNum = rOutArray.Num();
-			for( T* const  _pComp : rInCompArray )
-			{
-				if( AActor* pOwner = _pComp->GetOwner() )
-				{
-					if( ( nullptr == pActorFilter || pOwner->IsA(pActorFilter) )
-					&&	( Filter( pOwner ) ) )
-						rOutArray.AddUnique( pOwner );
-				}
-			}
-			return _arrayNum < rOutArray.Num();
+			return Get( pRootComponent, [&]( T* pComp ){
+				return pComp->ComponentHasTag(tag) && filter(pComp); });
 		}
 
-		
-//			template<class TActor>
-//			static bool GetActors( const TArray<T*>& rInCompArray, TArray<AActor*>& rOutArray, UClass* pActorFilter=nullptr )
-//			{
-//				for( T* const  _pComp : rInCompArray )
-//				{
-//					if( AActor* pOwner = _pComp->GetOwner() )
-//					{
-//						if( ( nullptr == pActorFilter || pOwner->IsA(pActorFilter) ) )
-//							rOutArray.AddUnique( pOwner );
-//					}
-//				}
-//			}
-//	
-//
+		template <class TFilter=NullFilter>
+		static void TagAll( USceneComponent* pRootComponent, TArray<T*>& rOutArray, FName tag, TFilter filter = NullFilter())
+		{
+			return GetAll( pRootComponent, rOutArray, [&]( T* pComp ){
+				return  pComp->ComponentHasTag(tag) && filter(pComp); });
+		}
+
+		template <class TFilter=NullFilter>
+		static void TagAll( AActor* pActor, TArray<T*>& rOutArray, FName tag, TFilter filter = NullFilter() )
+		{
+			return GetAll( pActor, rOutArray, [&]( T* pComp ){
+				return pComp->ComponentHasTag(tag) && filter(pComp); });
+		}
+
 	};
 
 

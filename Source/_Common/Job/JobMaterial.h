@@ -377,7 +377,7 @@ public :
 			return;
 
 		TArray<UMeshComponent*> meshComponentArray;
-		TL::Component<UMeshComponent>::GetAll( pOwner, meshComponentArray, rJobMat.m_Tag );
+		TL::Component<UMeshComponent>::TagAll( pOwner, meshComponentArray, rJobMat.m_Tag );
 		for( UMeshComponent* pMeshComponent  : meshComponentArray )
 		{
 			TArray<UMaterialInterface*> matArray;

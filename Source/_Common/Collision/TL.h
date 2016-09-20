@@ -107,7 +107,8 @@ namespace Physics{
 		if( false == bResult )
 			return false;
 
-		return TL::Component<UPrimitiveComponent>::GetActors( inOverlapComponents, rOutActor, pActorFilter );
+		TL::Component<UPrimitiveComponent>::GetActors( inOverlapComponents, rOutActor, pActorFilter );
+		return !!rOutActor.Num();
 	}
 
 	inline bool Collision( UWorld* pWorld, const FCollisionShape& rCollisionShape, const FVector vPos, TArray<AActor*>& rOutActor, AActor* pIgnoreActor= nullptr, UClass* pActorFilter=nullptr, UClass* pCompFilter=nullptr )

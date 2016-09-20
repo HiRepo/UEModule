@@ -33,9 +33,9 @@ ACommonCharacter::ACommonCharacter()
 //		m_JobMaterial->Append();
 //	}
 
-void ACommonCharacter::PostLoadSubobjects(FObjectInstancingGraph* OuterInstanceGraph)
+void ACommonCharacter::PostLoadSubobjects( FObjectInstancingGraph* pOuterInstanceGraph )
 {
-	Super::PostLoadSubobjects(OuterInstanceGraph);
+	Super::PostLoadSubobjects( pOuterInstanceGraph );
 
 	m_JobMaterial->RebuildMat( true );
 
@@ -44,12 +44,12 @@ void ACommonCharacter::PostLoadSubobjects(FObjectInstancingGraph* OuterInstanceG
 
 
 #if WITH_EDITOR	
-void ACommonCharacter::PostEditChangeChainProperty( struct FPropertyChangedChainEvent& PropertyChangedEvent )
+void ACommonCharacter::PostEditChangeChainProperty( struct FPropertyChangedChainEvent& rPropertyChangedEvent )
 {
-	if( "m_JobMaterial" != PropertyChangedEvent.Property->GetFName() )
-		return Super::PostEditChangeChainProperty( PropertyChangedEvent );
+	if( "m_JobMaterial" != rPropertyChangedEvent.Property->GetFName() )
+		return Super::PostEditChangeChainProperty( rPropertyChangedEvent );
 
-	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	Super::PostEditChangeChainProperty( rPropertyChangedEvent );
 }
 #endif
 

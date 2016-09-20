@@ -124,7 +124,7 @@ private :
 	void __RebuildAll( USceneComponent* pRootComponent )
 	{
 		ArrComponent.Reset();
-		TL::Component<USceneComponent>::GetAll( pRootComponent, ArrComponent, EnableTag );
+		TL::Component<USceneComponent>::TagAll( pRootComponent, ArrComponent, EnableTag );
 	}
 
 
