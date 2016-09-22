@@ -14,6 +14,10 @@ public class _Common : ModuleRules
 		// Slate UI
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
+		// Json
+		PublicDependencyModuleNames.AddRange(new string[] { "Json", "JsonUtilities" });
+
+		// 
 		PublicDependencyModuleNames.AddRange(new string[] { "AIModule", "GameplayTasks" });
 
 

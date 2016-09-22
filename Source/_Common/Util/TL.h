@@ -56,30 +56,5 @@ namespace TL
 			return Get().template FindRow<T>( psKey, FString(psKey) );
 		}
 	};
-
-
-//		template <class T>
-
-
-//	FStreamableManager
-
-//		m_CharacterBaseTable = ConstructTableLoader("Character_Base_TB");
-//		m_MonsterTable = ConstructTableLoader("Monster_TB");
-//	    m_SkillTable = ConstructTableLoader("Skill_TB");
-//	    m_SkillNttTable = ConstructTableLoader("Skill_Ntt_TB");
-//		m_UITextTable = ConstructTableLoader("UI_Text_TB");
-//		m_InfoUITable = ConstructTableLoader("Info_UI_TB");
-//	    m_BuffNttTable = ConstructTableLoader("Skill_Buff_TB");
-//	    m_CCTable = ConstructTableLoader("Skill_Cc_TB");
-
-
-//	UDataTable* UTableManager::ConstructTableLoader(FString path)
-//	{
-//		FString tmpPath = "DataTable'/Game/DataTables/" + path + "." + path + "'";
-//		ConstructorHelpers::FObjectFinder<UDataTable>
-//			GameObjectLookupDataTable_Character(*tmpPath);
-//		return GameObjectLookupDataTable_Character.Object;
-//	}
-
 }
 
