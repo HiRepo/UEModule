@@ -74,58 +74,8 @@ public :
 
 	}
 
-
-public :
 //		virtual bool IsLevelBoundsRelevant() const override { return false; }
 
-	void AddPointLight()
-	{
-//			UPointLightComponent* pPointLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("PointLight"));
-		UClass* pClass = UPointLightComponent::StaticClass();
-		FName name = *FComponentEditorUtils::GenerateValidVariableName( pClass, this );
-		UPointLightComponent* pPointLight = NewObject<UPointLightComponent>( this, pClass, name, RF_Transactional );
-//		UPointLightComponent* pPointLight = NewObject<UPointLightComponent>( this, pClass, name, RF_Transactional );
-		pPointLight->Mobility = EComponentMobility::Static;
-		pPointLight->AttachToComponent( RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale );
-		
-//	FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor").
-
-
-//	  FKismetEditorUtilities
-//			if( EditorMode == EComponentEditorMode::BlueprintSCS)
-//	Cast<UBlueprint>(ActorClass->ClassGeneratedBy)
-      	// Add to SerializedComponents array so it gets saved
-		AddInstanceComponent(pPointLight);
-		pPointLight->OnComponentCreated();
-		pPointLight->RegisterComponent();
-		pPointLight->bAffectsWorld = m_bEnableLights;
-
-		// Rerun construction scripts
-		RerunConstructionScripts();
-	}
-
-	void SetEnableLights( bool bEnable =true )
-	{
-		m_bEnableLights = bEnable;
-
-		TArray<UPointLightComponent*> arrPointLight;
-		TL::Component<UPointLightComponent>::GetAll( this, arrPointLight );
-		for( UPointLightComponent* pPointLight : arrPointLight )
-		{
-			pPointLight->bAffectsWorld = bEnable;
-			GetWorld()->Scene->UpdateLightColorAndBrightness( pPointLight );
-		}
-
-		if( bEnable )
-		{
-
-		}
-//			ReregisterAllComponents();
-//				RerunConstructionScripts();
-//				GEngine->BroadcastOnActorMoved( this );
-//				GetWorld()->bDoDelayedUpdateCullDistanceVolumes = true;
-//				FEditorSupportDelegates::UpdateUI.Broadcast();
-	}
 
 
 #if WITH_EDITOR
@@ -180,7 +130,58 @@ public :
 //			m_NextTickDelegate.Bind( this, &APointReflectionCapture::__OnNextTickEvent );
 	}
 
+	void AddPointLight()
+	{
+//			UPointLightComponent* pPointLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("PointLight"));
+		UClass* pClass = UPointLightComponent::StaticClass();
+
+		FName name = *FComponentEditorUtils::GenerateValidVariableName( pClass, this );
+		UPointLightComponent* pPointLight = NewObject<UPointLightComponent>( this, pClass, name, RF_Transactional );
+//		UPointLightComponent* pPointLight = NewObject<UPointLightComponent>( this, pClass, name, RF_Transactional );
+		pPointLight->Mobility = EComponentMobility::Static;
+		pPointLight->AttachToComponent( RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale );
+		
+//	FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor").
+
+
+//	  FKismetEditorUtilities
+//			if( EditorMode == EComponentEditorMode::BlueprintSCS)
+//	Cast<UBlueprint>(ActorClass->ClassGeneratedBy)
+      	// Add to SerializedComponents array so it gets saved
+		AddInstanceComponent(pPointLight);
+		pPointLight->OnComponentCreated();
+		pPointLight->RegisterComponent();
+		pPointLight->bAffectsWorld = m_bEnableLights;
+
+		// Rerun construction scripts
+		RerunConstructionScripts();
+	}
+
 #endif
+
+	void SetEnableLights( bool bEnable =true )
+	{
+		m_bEnableLights = bEnable;
+
+		TArray<UPointLightComponent*> arrPointLight;
+		TL::Component<UPointLightComponent>::GetAll( this, arrPointLight );
+		for( UPointLightComponent* pPointLight : arrPointLight )
+		{
+			pPointLight->bAffectsWorld = bEnable;
+			GetWorld()->Scene->UpdateLightColorAndBrightness( pPointLight );
+		}
+
+		if( bEnable )
+		{
+
+		}
+//			ReregisterAllComponents();
+//				RerunConstructionScripts();
+//				GEngine->BroadcastOnActorMoved( this );
+//				GetWorld()->bDoDelayedUpdateCullDistanceVolumes = true;
+//				FEditorSupportDelegates::UpdateUI.Broadcast();
+	}
+
 };
 
 

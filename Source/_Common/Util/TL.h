@@ -25,6 +25,12 @@ namespace TL
 		}
 	};
 
+	// Example
+	/*
+		auto* s_tex = TL::Loader<UTexture2D>::Sync( TEXT("Texture2D'/Game/UI/Resource/Icon_Item/Ic_It_PVPPoint.Ic_It_PVPPoint'") );
+		auto* s_particle = TL::Loader<UParticleSystem>::Sync( TEXT("ParticleSystem'/Game/Effect/Common/Particles/P_Decal_My_01.P_Decal_My_01'") );
+	*/
+
 	template<class T>
 	struct FTable
 	{
@@ -57,4 +63,6 @@ namespace TL
 		}
 	};
 }
+
+
 

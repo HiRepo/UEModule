@@ -274,7 +274,21 @@ struct NullFilter
 		return (T*)(pActor->GetWorld()->SpawnActor<T>(spawnParam));
 	}
 
+	inline void DestoryObject( UObject*& pObject )
+	{
+		if( nullptr == pObject || false == pObject->IsValidLowLevel() ) 
+			return;
+		pObject->ConditionalBeginDestroy(); 
+		pObject = nullptr;
+	}
 
+	inline void DestoryObject( AActor*& pActor )
+	{
+		if( nullptr == pActor || false == pActor->IsValidLowLevel() ) 
+			return;
+		pActor->Destroy();
+		pActor->ConditionalBeginDestroy(); 
+	}
 
 //-----------------------------------------------------------------------------------
 
@@ -364,21 +378,21 @@ struct NullFilter
 		static T* Tag( USceneComponent* pRootComponent, FName tag, TFilter filter = NullFilter())
 		{
 			return Get( pRootComponent, [&]( T* pComp ){
-				return pComp->ComponentHasTag(tag) && filter(pComp); });
+				return (tag == NAME_None || pComp->ComponentHasTag(tag)) && filter(pComp); });
 		}
 
 		template <class TFilter=NullFilter>
 		static void TagAll( USceneComponent* pRootComponent, TArray<T*>& rOutArray, FName tag, TFilter filter = NullFilter())
 		{
 			return GetAll( pRootComponent, rOutArray, [&]( T* pComp ){
-				return  pComp->ComponentHasTag(tag) && filter(pComp); });
+				return (tag == NAME_None || pComp->ComponentHasTag(tag)) && filter(pComp); });
 		}
 
 		template <class TFilter=NullFilter>
 		static void TagAll( AActor* pActor, TArray<T*>& rOutArray, FName tag, TFilter filter = NullFilter() )
 		{
 			return GetAll( pActor, rOutArray, [&]( T* pComp ){
-				return pComp->ComponentHasTag(tag) && filter(pComp); });
+				return (tag == NAME_None || pComp->ComponentHasTag(tag)) && filter(pComp); });
 		}
 
 	};
@@ -546,8 +560,6 @@ struct NullFilter
 	{
 		return TL::GameMode<AGameMode>::Get( pWorld ) ? false : true;
 	}
-
-
 
 }
 
