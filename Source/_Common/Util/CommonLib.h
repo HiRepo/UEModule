@@ -42,7 +42,7 @@ public :
 	
 
 //----------		Controller		---------------------------------------------------
-	UFUNCTION(BlueprintPure, Category="Util|Common", Meta=(DefaultToSelf="pPawn") )
+	UFUNCTION(BlueprintPure, Category="Util|Common", meta=(DefaultToSelf="pPawn") )
 	static bool IsPlayer( const APawn* pPawn )
 	{
 		check( pPawn );
@@ -57,13 +57,13 @@ public :
 
 
 //----------		String		---------------------------------------------------
-	UFUNCTION(BlueprintPure, Category="Util|String", Meta=(DefaultToSelf="pObject") )
+	UFUNCTION(BlueprintPure, Category="Util|String", meta=(DefaultToSelf="pObject") )
 	static FString GetClassName( const UObject* pObject )
 	{
 		return pObject ? pObject->GetName() : TEXT("None");
 	}
 
-	UFUNCTION(BlueprintPure, Category="Util|String", Meta=(HidePin="pObject", DefaultToSelf="pObject", DisplayName="GetFName", CompactNodeTitle = "FName"))
+	UFUNCTION(BlueprintPure, Category="Util|String", meta=(HidePin="pObject", DefaultToSelf="pObject", DisplayName="GetFName", CompactNodeTitle = "FName"))
 	static FName GetFName( const UObject* pObject )
 	{
 		return pObject ? pObject->GetClass()->GetFName() : NAME_None;
@@ -235,5 +235,9 @@ public :
 
 	UFUNCTION(BlueprintCallable, Category="Util|AI|BB" )
 	static void SetBlackboardValueAsRotator( UBlackboardComponent* pBB, FName KeyName, FRotator Value );
+
+
+
+
 
 };

@@ -77,9 +77,13 @@ bool UJobBehaviorTree::ChangeBT( int index )
 	if( UJobDataBB* pJBB = rBTData.GetJobDataBB( this, pPawn ) )
 		pJBB->UseBlackboard( pAIController );
 
-	pAIController->RunBehaviorTree( rBTData.AssetBT );
-
 	m_iCurBT = index;
+	pAIController->RunBehaviorTree( rBTData.AssetBT );
+	auto* pBTComp =	Cast<UBehaviorTreeComponent>( pAIController->GetBrainComponent() );
+	rBTData.BTComp = pBTComp;
+	if( false == m_bPlaying )
+		pBTComp->StopTree(EBTStopMode::Safe);
+
 	return true;
 }
 

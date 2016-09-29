@@ -3,7 +3,6 @@
 #include "AIController.h"
 #include "JobBehaviorTree.generated.h"
 
-
 UCLASS(Abstract, Blueprintable, Category="Job", meta=(DisplayName="Job BlackBoard Data"))
 class _COMMON_API UJobDataBB : public UObject
 {
@@ -74,6 +73,9 @@ protected :
 	UPROPERTY( EditAnywhere )
 	UBehaviorTree*  AssetBT = nullptr;
 
+	UPROPERTY(Transient)
+	UBehaviorTreeComponent* BTComp = nullptr;
+
 	UPROPERTY( EditAnywhere )
 	TSubclassOf<UJobDataBB>  JobDataBBClass;
 
@@ -83,6 +85,9 @@ private :
 
 public :
 	UJobDataBB* GetJobDataBB( UJobBehaviorTree* pJobBT, APawn* pPawn );
+
+	UFUNCTION(BlueprintPure, Category="Job|AI") 
+	UBehaviorTreeComponent* GetBTComp(){ return BTComp; }
 };
 
 
@@ -100,6 +105,10 @@ private :
 	UPROPERTY( EditAnywhere, Category="JobComponent",  meta=(DisplayName = "Current BT Index") )
   	int m_iCurBT = 0;
 
+	UPROPERTY( EditAnywhere, Category="JobComponent",  meta=(DisplayName = "Current BT Index") )
+  	bool m_bPlaying = true;
+
+
 public :
 	UFUNCTION(BlueprintPure, Category="Job|AI") 
   	int GetCurrentBTIndex(){ return m_iCurBT; }
@@ -116,6 +125,8 @@ public :
 	UFUNCTION(BlueprintCallable, Category="Job|AI") 
 	bool ChangeBT( int index );
 
+	UFUNCTION(BlueprintPure, Category="Job|AI") 
+	bool IsPlaying(){ return m_bPlaying; }
 
 
 //	void UBlackboardComponent::SetValueAsVector(const FName& KeyName, FVector VectorValue)
@@ -151,14 +162,34 @@ public :
  		return BTDataArray[ idx ]; 
  	}
 
+	void Stop()
+	{
+		if( false == BTDataArray.IsValidIndex( m_iCurBT ) )
+			return;
+		if( UBehaviorTreeComponent* pBTComp = BTDataArray[m_iCurBT].BTComp )
+			pBTComp->StopTree(EBTStopMode::Safe);
+		m_bPlaying = false;
+	}
+
+	void Start()
+	{
+		if( false == BTDataArray.IsValidIndex( m_iCurBT ) )
+			return;
+		if( UBehaviorTreeComponent* pBTComp = BTDataArray[m_iCurBT].BTComp )
+			pBTComp->RestartTree();
+		m_bPlaying = true;
+	}
 
 protected :
 	virtual void Possess( APawn* pPawn ) override
 	{
 		m_pPawn = pPawn;
-		if( ChangeBT( m_iCurBT ) )
+		if( false == ChangeBT( m_iCurBT ) )
+			m_bPlaying = false;
+		if( pPawn )
 			_OnPossess( pPawn );
 	}
+
 
 	virtual void UnPossess() override
 	{
@@ -185,15 +216,6 @@ protected :
 			pJobDataBB->Tick( fDeltaTime );
 	}
 
-//		virtual void OnAttach() override
-//		{
-//			Super::OnAttach();
-//		}
-//	
-//		virtual void OnDetach() override
-//		{
-//			Super::OnDetach();
-//		}
 };
 
 
