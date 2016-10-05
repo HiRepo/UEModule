@@ -521,9 +521,9 @@ protected :
 				{
 					FTween& rTween = rMatData.m_Tween;
 					FLinearColor vLastValue;
-					if( rTween.IsForward() )
-						vLastValue = rTween.GetTarget();
-					else
+//						if( rTween.IsForward() )
+//							vLastValue = rTween.GetTarget();
+//						else
 						vLastValue = rTween.GetSource();
 
 					if( ETweenLeng::Element4 == rTween.GetElementLeng()  )

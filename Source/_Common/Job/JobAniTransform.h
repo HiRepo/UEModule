@@ -209,8 +209,6 @@ public :
 	UJobAniTransform()
 	{ m_EnableTick = true; }
 
-
-	FORCEINLINE
  	FAniTransform& operator[]( int idx )
  	{ 
 		check( m_AniTDatas.IsValidIndex( idx ) );

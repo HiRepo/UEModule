@@ -32,12 +32,18 @@ namespace TL
 {
 #define CHK_MSG( __msg )		check( true && __msg );
 
+	struct NullFilter
+	{
+		template<class ... Ts>
+		bool operator()( Ts ... ts ){ return true; }
+	};
 
-struct NullFilter
-{
-	template<class ... Ts>
-	bool operator()( Ts ... ts ){ return true; }
-};
+
+	template <class T>
+	inline T* MallocStruct()
+	{
+		return	static_cast<T*>(FMemory::Malloc(sizeof(T)));
+	}
 
 
 //-----------------------------------------------------------------------------------

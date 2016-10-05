@@ -86,7 +86,6 @@ private :
 public :
 	UJobDataBB* GetJobDataBB( UJobBehaviorTree* pJobBT, APawn* pPawn );
 
-	UFUNCTION(BlueprintPure, Category="Job|AI") 
 	UBehaviorTreeComponent* GetBTComp(){ return BTComp; }
 };
 

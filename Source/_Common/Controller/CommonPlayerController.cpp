@@ -83,21 +83,21 @@ void ACommonPlayerController::OnMouseLeftPressed()
 {
 	//SetViewTarget(this);
 	static ACharacter* s_oldCharacter = Cast<ACharacter>(GetPawn());
-	ACharacter* character = FindObjectFast<ACharacter>(GetWorld(), TEXT("_NewCharacter"));
-	character = FindObject<ACharacter>(GetWorld(), TEXT("_NewCharacter"));
-	if (!character)
+	ACharacter* pCharacter = FindObjectFast<ACharacter>(GetWorld(), TEXT("_NewCharacter"));
+	pCharacter = FindObject<ACharacter>(GetWorld(), TEXT("_NewCharacter"));
+	if( !pCharacter )
 	{
 		for (TActorIterator<ACharacter> It(GetWorld()); It; ++It)
 		{
 			ACharacter* pCA = *It;
 			if (pCA->GetName() == TEXT("_NewCharacter"))
-				character = pCA;
+				pCharacter = pCA;
 		}
 	}
-	if (character)
+	if (pCharacter)
 	{
-		if( GetPawn() != character )
-			Possess(character);
+		if( GetPawn() != pCharacter )
+			Possess(pCharacter);
 		else
 			Possess(s_oldCharacter);
 	}

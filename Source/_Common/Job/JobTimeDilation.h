@@ -3,28 +3,34 @@
 #include "JobComponent.h"
 #include "JobTimeDilation.generated.h"
 
-USTRUCT(meta=(DisplayName ="Time Speed"))
+USTRUCT(BlueprintType, meta=(DisplayName ="Time Scale"))
 struct FTimeDilation
 {
 	friend class UJobTimeDilation;
 
 	GENERATED_BODY()
 protected :
-	UPROPERTY( EditAnywhere, meta=(UIMin = 0, ClampMin = 0), meta=(DisplayName="Time Scale") )
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, meta=(UIMin = 0, ClampMin = 0), meta=(DisplayName="Only Animation") )
+	bool 	m_isOnlyAnim		= false;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, meta=(UIMin = 0, ClampMin = 0), meta=(DisplayName="Time Scale") )
 	float 	m_fTimeScale		= 1.f;
 
-	UPROPERTY( EditAnywhere, meta=(UIMin = 0, ClampMin = 0), meta=(DisplayName="Available Time") )
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, meta=(UIMin = 0, ClampMin = 0), meta=(DisplayName="Available Time") )
 	float 	m_fAvailableTime	= 0.f;
 
-	UPROPERTY( VisibleAnywhere, meta=(DisplayName="Life Cycle") )
+	UPROPERTY( VisibleAnywhere, BlueprintReadWrite, meta=(DisplayName="Life Cycle") )
 	ELifeCycle m_eLifeCycle 	= ELifeCycle::Time;
 
 public :
-	FORCEINLINE
 	ELifeCycle GetLifeCycle(){ return m_eLifeCycle; }
-	FORCEINLINE
+
+	void SetOnlyAnim( bool isOnlyAnim ){ m_isOnlyAnim = isOnlyAnim; }
+
+	bool IsOnlyAnim( bool isOnlyAnim ){ return m_isOnlyAnim; } 
+
 	float GetAvailableTime(){ return m_fAvailableTime; }
-	FORCEINLINE
+
 	float GetTimeScale(){ return m_fTimeScale; }
 
 	void SetLifeCycle( ELifeCycle eLifeCycle )
@@ -39,13 +45,24 @@ public :
 	
 	void SetTimeScale( float fTimeScale )
 	{
-		m_fTimeScale = fTimeScale;
+		m_fTimeScale = (fTimeScale > 0.f) ? fTimeScale : 0.f;
 	}
+
+protected :
+	bool _UpdateAvailableTime( float fDeltaTime )
+	{
+		if( ELifeCycle::Infinity != m_eLifeCycle  )
+		{
+			if( m_fAvailableTime < 0.f )
+				return false;
+			m_fAvailableTime -= fDeltaTime;
+		}
+		return true;
+	}
+
 };
 
-
-//	UCLASS(Category="Job", meta=(DisplayName ="_Job Time Speed"))
-UCLASS(meta=(DisplayName ="Time Speed"))
+UCLASS(meta=(DisplayName ="Time Scale"))
 class _COMMON_API UJobTimeDilation : public UJobComponent
 {
 	GENERATED_BODY()
@@ -53,26 +70,34 @@ friend struct TL::Create<UJobTimeDilation, false>;
 friend class UTimeDilationNotifyState;
 
 private :
-//		UPROPERTY( EditAnywhere, Category="Job|Time", meta=(DisplayName = "Default Time Speed List") )
+//		UPROPERTY( EditAnywhere, Category="Job|Time", meta=(DisplayName = "Default Time Scale List") )
 	UPROPERTY( EditAnywhere, Category="JobComponent",  meta=(DisplayName = "Default Time List") )
 	TArray<FTimeDilation> 	m_TimeDilationDatas;
 	TArray<FTimeDilation*> 	m_TimeDilationExterns;	// ex) Referfece NofifyState::FTimeDilation
 
 	float m_fTimeDilation = 1.f;
 
+	float m_fTimeScaleAnim = 1.f;
+
 protected :
 	void _UpdateCurTimeDilation();
 
-	void _Calculate( FTimeDilation& rTD )
+	void _Update( FTimeDilation& rTD )
 	{
-		if( ELifeCycle::Infinity != rTD.m_eLifeCycle && rTD.m_fAvailableTime <= 0  )
-			return;
-
-		m_fTimeDilation *= rTD.m_fTimeScale;
-		if( ELifeCycle::Infinity != rTD.m_eLifeCycle  )
-			rTD.m_fAvailableTime -= GetWorld()->GetDeltaSeconds();
+		if( rTD._UpdateAvailableTime( GetWorld()->GetDeltaSeconds() ) )
+		{
+			if( rTD.m_isOnlyAnim )
+				m_fTimeScaleAnim *=  rTD.m_fTimeScale;
+			else
+				m_fTimeDilation *= rTD.m_fTimeScale;
+		}
 	}
 
+	void _ResetTimeScale()
+	{
+		m_fTimeDilation = 1.f;
+		m_fTimeScaleAnim = 1.f;
+	}
 
 	void _init()
 	{
@@ -85,39 +110,45 @@ public :
 	UFUNCTION(BlueprintPure, Category="Job|TimeDilation")
 	float GetCurTimeDilation() { return m_fTimeDilation; }
 
-	FORCEINLINE
  	FTimeDilation& operator[]( int idx )
  	{ 
 		check( m_TimeDilationDatas.IsValidIndex( idx ) );
  		return m_TimeDilationDatas[ idx ]; 
  	}
 
-	FORCEINLINE
-	void ResetTimeDilation()
+	UFUNCTION(BlueprintCallable, Category="Job|TimeScale" )
+	void SetOnlyAnim( int index, bool bOnlyAnim )
 	{
-		m_fTimeDilation = 1.f;
-		_UpdateCurTimeDilation();		// Recurvery orignal
+		m_TimeDilationDatas[index].SetOnlyAnim( bOnlyAnim );
 	}
 
-
+	UFUNCTION(BlueprintCallable, Category="Job|TimeScale" )
 	void SetTimeScale( int index, float fTimeScale )
 	{
-		m_TimeDilationDatas[index].m_fTimeScale = fTimeScale;
+		m_TimeDilationDatas[index].SetTimeScale( fTimeScale );
 	}
 
+	UFUNCTION(BlueprintCallable, Category="Job|TimeScale" )
 	void SetAvailableTime( int index, float fAvailableTime )
 	{
 		m_TimeDilationDatas[index].m_fAvailableTime = fAvailableTime;
 	}
 
+	UFUNCTION(BlueprintCallable, Category="Job|TimeScale" )
 	void SetLifeCycle( int index, ELifeCycle eLifeCycle )
 	{
 		m_TimeDilationDatas[index].m_eLifeCycle = eLifeCycle;
 	}
 
-	void SetTimeDilation( int index,  FTimeDilation timeDilation )
+	void SetTimeDilation( int index, FTimeDilation timeDilation )
 	{
 		m_TimeDilationDatas[index] = timeDilation;
+	}
+
+	UFUNCTION(BlueprintCallable, Category="Job|TimeScale" )
+	void Add( FTimeDilation timeDilation )
+	{
+		m_TimeDilationDatas.Push( timeDilation );
 	}
 
 	void Append( FTimeDilation timeDilation = FTimeDilation{} )
@@ -146,18 +177,20 @@ protected :
 	virtual void OnDetach() override
 	{
 		Super::OnDetach();
-		ResetTimeDilation();
+		_ResetTimeScale();
+		_UpdateCurTimeDilation();
 	}
 
 	virtual void Tick( float fDeltaTime ) override
 	{
 		Super::Tick( fDeltaTime );
-		m_fTimeDilation = 1.f;
+
+		_ResetTimeScale();
 
 		for( int i= 0; i < m_TimeDilationDatas.Num(); ++i )
 		{
 			FTimeDilation& rTD = m_TimeDilationDatas[i];
-			_Calculate( rTD );
+			_Update( rTD );
 			if( ELifeCycle::TimeAutoDelete == rTD.m_eLifeCycle && rTD.m_fAvailableTime < 0.f )
 				m_TimeDilationDatas.RemoveAt( i );
 		}
@@ -165,7 +198,7 @@ protected :
 		for( FTimeDilation* pTD : m_TimeDilationExterns )
 		{
 			FTimeDilation& rTD = *pTD;
-			_Calculate( rTD );
+			_Update( rTD );
 			if( ELifeCycle::TimeAutoDelete == rTD.m_eLifeCycle && rTD.m_fAvailableTime < 0.f )
 				m_TimeDilationExterns.Remove( pTD );
 		}

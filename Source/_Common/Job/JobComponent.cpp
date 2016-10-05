@@ -42,7 +42,12 @@ void UJobComposite::Append( TSubclassOf<UJobComponent> pJobClass )
 void UJobTimeDilation::_UpdateCurTimeDilation()
 {
 	if( AActor* pOwner = GetOwner() )
+	{
 		pOwner->CustomTimeDilation  = m_fTimeDilation;
+
+		if( USkeletalMeshComponent* pSkeleton = TL::Component<USkeletalMeshComponent>::Get( pOwner ) )
+			pSkeleton->GlobalAnimRateScale = m_fTimeScaleAnim;
+	}
 #if WITH_EDITOR
 	else
 	if( UJobActorComposite* pJobActorComposite = GetRootComposite()->GetJobActorComposite() )
@@ -50,6 +55,10 @@ void UJobTimeDilation::_UpdateCurTimeDilation()
 		UWorld* pWorld = pJobActorComposite->GetWorld();
 		if( TL::IsEditorWorld( pWorld ) )
 			UCommonLib::SetTimeDilation( pWorld, m_fTimeDilation );
+
+		USkeletalMeshComponent* pSkeleton = Cast<USkeletalMeshComponent>( pJobActorComposite->GetAttachParent() );
+		check( pSkeleton );
+		pSkeleton->GlobalAnimRateScale = m_fTimeScaleAnim;
 	}
 #endif	
 

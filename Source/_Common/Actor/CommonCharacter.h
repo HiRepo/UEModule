@@ -23,33 +23,28 @@ protected :
 // UPROPERTY(VisibleAnywhere, Transient, Category="Job", meta=(DisplayName="Composite") )
 	UJobComposite* m_JobComposite		= nullptr;
 
-	UPROPERTY(EditAnywhere, Category="Job", meta=(DisplayName="Material"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Job", meta=(DisplayName="Material"))
 	UJobMaterial* m_JobMaterial			= nullptr;
 
-	UPROPERTY(EditAnywhere, Category="Job", meta=(DisplayName="Time Speed"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Job", meta=(DisplayName="Time Speed"))
     UJobTimeDilation* m_JobTimeDilation = nullptr;
 
-	UPROPERTY(EditAnywhere, Category="Job", meta=(DisplayName="Ani Transform"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Job", meta=(DisplayName="Ani Transform"))
     UJobAniTransform* m_JobAniTransform = nullptr;
 
-	UPROPERTY(EditAnywhere, Category="Job", meta=(DisplayName="BehaviorTree"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Job", meta=(DisplayName="BehaviorTree"))
     UJobBehaviorTree* m_JobBehaviorTree = nullptr;
 
 public :
 
-	FORCEINLINE
 	UJobComposite& GetJobComposite(){ return *m_JobComposite; }
 
-	FORCEINLINE
     UJobMaterial& GetJobMaterial(){	return  *m_JobMaterial; }
 
-	FORCEINLINE
     UJobTimeDilation& GetJobTimeDilation(){	return  *m_JobTimeDilation; }
 
-	FORCEINLINE
     UJobAniTransform& GetJobAniTransform(){	return  *m_JobAniTransform; }
 
-	FORCEINLINE
     UJobBehaviorTree& GetJobBehaviorTree(){	return  *m_JobBehaviorTree; }
 
 
