@@ -20,7 +20,7 @@ protected :
 	float 	m_fAvailableTime	= 0.f;
 
 	UPROPERTY( VisibleAnywhere, BlueprintReadWrite, meta=(DisplayName="Life Cycle") )
-	ELifeCycle m_eLifeCycle 	= ELifeCycle::Time;
+	ELifeCycle m_eLifeCycle 	= ELifeCycle::Infinity;
 
 public :
 	ELifeCycle GetLifeCycle(){ return m_eLifeCycle; }
