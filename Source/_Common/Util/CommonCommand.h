@@ -48,3 +48,89 @@ protected :
 	}
 
 };
+
+
+#define __COMM_INIT_SLOT( _CLASS, _PREFIX, _COMM, _PARAM, _HELP ) 		\
+	AddExec<_CLASS>( TEXT( #_PREFIX"."#_COMM ), &_CLASS::_CB_##_COMM, TEXT( _HELP ) );
+
+#define __COMM_FUNC_SLOT( _CLASS, _PREFIX, _COMM, _PARAM, _HELP ) 		\
+	__COMM_FUNC##_PARAM( _COMM )
+
+
+#define __COMM_PARCING_S( _V ) 											\
+	FString _V = FParse::Token( param, false );
+
+#define __COMM_PARCING_I( _V ) 											\
+	int _V = FCString::Atoi( *FParse::Token( param, false ) );
+
+#define __COMM_PARCING_F( _V ) 											\
+	float  _V = FCString::Atof( *FParse::Token( param, false ) );
+
+#define __COMM_FUNC( _COMM )											\
+	void _COMM();														\
+	void _CB_##_COMM( const TCHAR* ){ _COMM(); }
+
+#define __COMM_FUNC_F( _COMM )											\
+	void _COMM( float );												\
+	void _CB_##_COMM( const TCHAR* param ){  							\
+		__COMM_PARCING_F( v );	_COMM( v ); }
+
+#define __COMM_FUNC_S( _COMM )											\
+	void _COMM( FString );												\
+	void _CB_##_COMM( const TCHAR* param ){  							\
+		__COMM_PARCING_S( v );	_COMM( v ); }
+
+#define __COMM_FUNC_I( _COMM )											\
+	void _COMM( int );													\
+	void _CB_##_COMM( const TCHAR* param ){  							\
+		__COMM_PARCING_I( v );	_COMM( v ); }
+
+#define __COMM_FUNC_I_S( _COMM )										\
+	void _COMM( int, FString );											\
+	void _CB_##_COMM( const TCHAR* param ){ 							\
+		__COMM_PARCING_I( i );											\
+		__COMM_PARCING_S( s );											\
+		_COMM( i ,s	);	}
+
+#define __COMM_FUNC_F_S( _COMM )										\
+	void _COMM( float, FString );										\
+	void _CB_##_COMM( const TCHAR* param ){ 							\
+		__COMM_PARCING_F( f );											\
+		__COMM_PARCING_S( s );											\
+		_COMM( f ,s	);	}
+
+#define __COMM_FUNC_S_I( _COMM )										\
+	void _COMM( int, FString );											\
+	void _CB_##_COMM( const TCHAR* param ){ 							\
+		__COMM_PARCING_S( s );											\
+		__COMM_PARCING_I( i );											\
+		_COMM( s, i	);	}
+
+#define __COMM_FUNC_S_F( _COMM )										\
+	void _COMM( float, FString );										\
+	void _CB_##_COMM( const TCHAR* param ){ 							\
+		__COMM_PARCING_S( s );											\
+		__COMM_PARCING_F( f );											\
+		_COMM( s, f	);	}
+
+#define __COMM_FUNC_I_I( _COMM )										\
+	void _COMM( int, FString );											\
+	void _CB_##_COMM( const TCHAR* param ){ 							\
+		__COMM_PARCING_I( i1 );											\
+		__COMM_PARCING_I( i2 );											\
+		_COMM( i1 , i2	);	}
+
+#define __COMM_FUNC_F_F( _COMM )										\
+	void _COMM( int, FString );											\
+	void _CB_##_COMM( const TCHAR* param ){ 							\
+		__COMM_PARCING_F( f1 );											\
+		__COMM_PARCING_F( f2 );											\
+		_COMM( f1 , f2	);	}	
+
+#define __COMM_FUNC_S_S( _COMM )										\
+	void _COMM( FString, FString );										\
+	void _CB_##_COMM( const TCHAR* param ){ 							\
+		__COMM_PARCING_S( s1 );											\
+		__COMM_PARCING_S( s2 );											\
+		_COMM( s1 ,s2 );	}	
+

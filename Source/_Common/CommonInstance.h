@@ -14,23 +14,24 @@ protected :
 
 public :
 	UPROPERTY(Transient)
-	UCommonCommand* m_Commnd = nullptr;
+	UCommonCommand* m_Command = nullptr;
 
 	virtual bool Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Out = *GLog) override
 	{
-		return m_Commnd->Exec( InWorld, Cmd, Out );
+		return m_Command->Exec( InWorld, Cmd, Out );
 	}
 
 public:
 	UCommonInstance() {}
 //		m_GameCommnd = (UGameCommand*)CreateDefaultSubobject("GameCommnad", UGameCommand::StaticClass(), UGameCommand::StaticClass(), /*bIsRequired =*/ true, /*bIsAbstract =*/ false, /*bTransient*/false);
 
+	UCommonCommand* GetCommannd(){ return m_Command; }
 
 	virtual void Init() override
 	{
 		if( nullptr == CommandClass )
 			CommandClass = UCommonCommand::StaticClass();
-		m_Commnd = NewObject<UCommonCommand>( this, CommandClass );
-		m_Commnd->Init();
+		m_Command = NewObject<UCommonCommand>( this, CommandClass );
+		m_Command->Init();
 	}
 };
