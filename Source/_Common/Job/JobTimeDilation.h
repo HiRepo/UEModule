@@ -160,7 +160,7 @@ public :
 	void AppendExtern( FTimeDilation* pTimeDilation )
 	{
 		check(pTimeDilation);
-		m_TimeDilationExterns.Push( pTimeDilation );
+		m_TimeDilationExterns.AddUnique( pTimeDilation );
 	}
 
 	void RemoveExtern( FTimeDilation* pTimeDilation )
