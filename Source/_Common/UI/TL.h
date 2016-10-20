@@ -9,7 +9,7 @@ namespace TL{
 		static T* GetByName( UUserWidget* pWidget, FName name )
 		{
 			type_assert( T, UWidget ); 
-			if( UWidgetTree* pWidgetTree = pWidget->WidgetTree; )
+			if( UWidgetTree* pWidgetTree = pWidget->WidgetTree )
 				return pWidgetTree->FindWidget( name );
 			return nullptr;
 		}
