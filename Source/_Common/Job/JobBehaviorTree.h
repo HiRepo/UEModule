@@ -44,7 +44,6 @@ public :
 	UFUNCTION(BlueprintPure, Category="Job|AI|BB")
   	UBlackboardComponent* GetBlackboard(){ return m_pCompBB; }
 
-	FORCEINLINE
 	UBlackboardData* GetAssetBB(){ return AssetBB; }
 
 	void UseBlackboard( AAIController* pController )
@@ -154,7 +153,6 @@ public :
 	UJobBehaviorTree() 	
 	{ m_EnableTick = true; }
 
-	FORCEINLINE
  	FBTData& operator[]( int idx )
  	{ 
 		check( BTDataArray.IsValidIndex( idx ) );

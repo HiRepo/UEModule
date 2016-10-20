@@ -69,8 +69,6 @@ protected :
 
 	void _SetComposite( UJobComposite* pComposite );
 
-
-	FORCEINLINE
 	virtual void _SetOwner( AActor* pOwner )
 	{
 		m_pOwner = pOwner;
@@ -82,10 +80,8 @@ public :
 		return	TL::GetWorld( m_pOwner );
 	}
 
-	FORCEINLINE
 	AActor* GetOwner(){ return m_pOwner; }
 
-	FORCEINLINE
 	UJobComposite* GetComposite() 
 	{ 
 		return m_pJobComposite; 
@@ -142,14 +138,12 @@ protected :
 
 namespace TL 
 {
-	FORCEINLINE
 	static void DoJob( UJobComponent* pComponent )
 	{
 		check( pComponent );
 		(*pComponent)();
 	}
 
-	FORCEINLINE
 	static void DoJob( UJobComponent& rComponent )
 	{
 		rComponent();
