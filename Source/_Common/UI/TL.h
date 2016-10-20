@@ -6,6 +6,14 @@ namespace TL{
 	template<class T>
 	struct Widget
 	{
+		static T* GetByName( UUserWidget* pWidget, FName name )
+		{
+			type_assert( T, UWidget ); 
+			if( UWidgetTree* pWidgetTree = pWidget->WidgetTree )
+				return pWidgetTree->FindWidget( name );
+			return nullptr;
+		}
+
 		template <class TFilter=NullFilter>
 		static T* Get( UUserWidget* pWidget, TFilter filter=NullFilter() )
 		{
@@ -17,7 +25,7 @@ namespace TL{
 			pWidgetTree->ForEachWidget( [&]( UWidget* pWidget )
 				{ 
 					T* pFindWidget = Cast<T>( pWidget );
-					if( pFindWidget && filter() )
+					if( pFindWidget && filter( pFindWidget ) )
 						return pFindWidget;
 				});
 			return nullptr;
@@ -35,7 +43,7 @@ namespace TL{
 			pWidgetTree->ForEachWidget( [&]( UWidget* pWidget )
 				{ 
 					T* pFindWidget = Cast<T>( pWidget );
-					if( pFindWidget && filter() )
+					if( pFindWidget && filter( pFindWidget ) )
 						rOutArray.Add( pFindWidget );
 				});
 
