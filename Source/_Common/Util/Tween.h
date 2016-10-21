@@ -148,5 +148,55 @@ public :
 	{
 		return __GetValue( fPercent, m_Source, m_Target );
 	}
+
+private :
+	bool m_bSkipFrame = false;
+
+	float m_fOldPercent = 0.f;
+
+	FLinearColor m_Current = FLinearColor::Black;
+
+public :
+	FLinearColor GetCurrent() { return m_Current; }
+	float GetCurrentR() { return m_Current.R; }
+	float GetCurrentG() { return m_Current.G; }
+	float GetCurrentB() { return m_Current.B; }
+	float GetCurrentA() { return m_Current.A; }
+
+	bool IsOverTime(){ return 1.f <= m_fOldPercent; }
+
+	// return UpdateTime
+	bool Update( const float fPercent, bool isLoop )
+	{
+		bool bUpdateTime = true;
+		float fFixedPercent = fPercent;
+		const float _fOldPercent = m_fOldPercent;
+		
+		if( ETweenFlow::Return == m_eFlow )
+		{
+			if( _fOldPercent < 0.5f && 0.5f <= fPercent )
+			{
+				bUpdateTime = false;
+				fFixedPercent = 0.5f;
+			}
+		}
+		if( _fOldPercent < 1.f && 1.f < fPercent )
+		{
+			fFixedPercent = 1.f;
+			if( isLoop )
+				bUpdateTime = false;
+		}
+
+		switch( m_eElementLeng )
+		{
+		case ETweenLeng::Element1 :
+			m_Current.R = GetValueX( fFixedPercent );
+		case ETweenLeng::Element4 :
+			m_Current = GetValue( fFixedPercent );
+		}
+		m_fOldPercent = fPercent;
+
+		return bUpdateTime;
+	}
 };
 

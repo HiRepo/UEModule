@@ -4,6 +4,12 @@
 #include "Material/TL.h"
 #include "JobMaterial.generated.h"
 
+UENUM(BlueprintType)
+enum class EMatParamLeng : uint8
+{
+	Scale,
+	Vector,
+};
 
 
 USTRUCT()
@@ -21,6 +27,9 @@ protected :
 	UPROPERTY( EditAnywhere, meta=(DisplayName="Tween") )
 	FTween 	m_Tween;
 
+	UPROPERTY( EditAnywhere, meta=(DisplayName="ElementLeng"))
+	EMatParamLeng  	m_eMatParamLeng 	= EMatParamLeng::Vector;
+
 	UPROPERTY( EditAnywhere, meta=(ClampMin="0", ClampMax="1", UIMin="-1", UIMax="15", DisplayName="Start Time Rate") )
 	float 	m_fStartTimeRate = 0.f;
 
@@ -28,12 +37,14 @@ protected :
 	float 	m_fEndTimeRate	= 1.f;
 	
 private :
-	UPROPERTY( VisibleAnywhere, Transient, meta=(DisplayName="Percent") )
-	float 	m_fPercent 	= 0.f;
+//		UPROPERTY( VisibleAnywhere, Transient, meta=(DisplayName="Percent") )
+//		float 	m_fPercent 	= 0.f;
 
 
 public :
-	ETweenFlow GetTweenFlow() { m_Tween.GetFlowType(); }
+	FTween& GetTween() { return m_Tween; }
+
+	EMatParamLeng GetMatParamLeng(){ return m_eMatParamLeng; }
 
 	void SetTarget( float val ) { m_Tween.SetTarget( val ); }
 
@@ -41,17 +52,22 @@ public :
 
 	void SetTweenFlow( ETweenFlow eFlow ) { m_Tween.SetFlowType( eFlow ); }
 
-	void SetTweenLeng( ETweenLeng eTweenLeng )
+	void SetMatParamLeng( EMatParamLeng eMatParamLeng )
 	{
-		check( ETweenLeng::Element1 == eTweenLeng || ETweenLeng::Element4 == eTweenLeng );
-		m_Tween.SetLengType( eTweenLeng );
+		m_eMatParamLeng = eMatParamLeng;
+		if( EMatParamLeng::Vector == eMatParamLeng )
+			m_Tween.SetLengType( ETweenLeng::Element4 );
+		else
+			m_Tween.SetLengType( ETweenLeng::Element1 );
 	}
 
-	void SetData( FName paraName, ETweenLeng eTweenLeng, ETweenFlow eFlow = ETweenFlow::Forward )
+	void SetData( FName paraName, EMatParamLeng eMatParamLeng, ETweenFlow eFlow = ETweenFlow::Forward, ETweenCurve eCurve =ETweenCurve::Linear )
 	{
 		m_ParameterName = paraName;
 		m_Tween.SetFlowType( eFlow );
-		SetTweenLeng( eTweenLeng );
+		m_Tween.SetCurveType( eCurve );
+
+		SetMatParamLeng( eMatParamLeng );
 	}
 
 	void SetSourceFromMaterial( UMaterialInterface* pBaseMaterial )
@@ -59,7 +75,7 @@ public :
 		if( nullptr == pBaseMaterial || m_ParameterName == NAME_None )
 			return;
 		FLinearColor val;
-		if( ETweenLeng::Element4 == m_Tween.GetLengType() )
+		if( EMatParamLeng::Vector == m_eMatParamLeng )
 			pBaseMaterial->GetVectorParameterValue( m_ParameterName, val );
 		else 
 		{
@@ -107,6 +123,8 @@ private :
 
 	UPROPERTY( VisibleAnywhere, meta=(DisplayName="Original Mat Array") )
 	TArray<UMaterialInterface*> m_MatArray;
+
+	bool m_bSkipUpdateTime = false;
 
 public :
  	FMatData& operator[]( int idx ) 
@@ -158,39 +176,29 @@ public :
 		(*this)[dataIdx].SetTarget( val );
 	}
 
-	void SetTweenFlow( int dataIdx, ETweenFlow eFlow )	
-	{
-		(*this)[dataIdx].SetTweenFlow( eFlow );;
-	}
-
-	void SetTweenFlow( ETweenFlow eFlow )	
-	{
-		for( FMatData& rMatData : m_Datas )
-			rMatData.SetTweenFlow( eFlow );
-	}
-
 public :
-	void SetData( int dataIdx, FName paraName, ETweenLeng eTweenLeng, ETweenFlow eFlow = ETweenFlow::Forward )
+
+	void SetData( int dataIdx, FName paraName, EMatParamLeng eMatParamLeng, ETweenFlow eFlow = ETweenFlow::Forward, ETweenCurve eCurve =ETweenCurve::Linear )
 	{
 		int iNumData = m_Datas.Num();
 		check( dataIdx <= iNumData  );
 		if( dataIdx == iNumData )	// Append,  ! SetData functions's index shoube be progressively appended;
 		{
 			FMatData matData;
-			matData.SetData( paraName, eTweenLeng, eFlow );
+			matData.SetData( paraName, eMatParamLeng, eFlow, eCurve );
 			m_Datas.Add( matData );
 		}
 		else						// Assign
 		{
 			FMatData& rMatData = m_Datas[dataIdx];
-			rMatData.SetData( paraName, eTweenLeng, eFlow );
+			rMatData.SetData( paraName, eMatParamLeng, eFlow, eCurve );
 		}
 	}
 
-	void AppendData( FName paraName, ETweenLeng eTweenLeng, ETweenFlow eFlow = ETweenFlow::Forward )
+	void AppendData( FName paraName, EMatParamLeng eMatParamLeng, ETweenFlow eFlow = ETweenFlow::Forward )
 	{
 		FMatData matData;
-		matData.SetData( paraName, eTweenLeng, eFlow );
+		matData.SetData( paraName, eMatParamLeng, eFlow );
 		m_Datas.Add( matData );
 	}
 
@@ -226,6 +234,7 @@ public :
 		const float _fTime = m_fTime;
 		const float _fElapseTime = m_fElapseTime;
 
+		bool bSkipUpdateTime = false;
 		for( FMatData& rMatData : m_Datas )
 		{
 			FTween& rTween = rMatData.m_Tween;
@@ -235,24 +244,22 @@ public :
 			if( _fElapseTime < _fStartTime )
 				continue;
 
-			const float _fOldPercent = rMatData.m_fPercent;
-			float fRealPercent = (_fElapseTime - _fStartTime)  / (_fEndTime - _fStartTime);
-			rMatData.m_fPercent = fRealPercent;
+			const float _fPercent = (_fElapseTime - _fStartTime)  / (_fEndTime - _fStartTime);
+			if( 1.f < _fPercent && rTween.IsOverTime() )
+				continue;
 
-			float fPercent = fRealPercent;
-			if( ETweenFlow::Return == rMatData.GetTweenFlow() && (_fOldPercent < 0.5f && 0.5f < fRealPercent ) )
-				fPercent = 0.5f;
-			if( _fOldPercent < 1.f && 1.f < fRealPercent )
-				fPercent = 1.f;
+		 	if( false == rTween.Update( _fPercent, m_bLoop ) )
+				bSkipUpdateTime = true;
 
 			for( UMaterialInstanceDynamic* pMID : m_MIDArray )
 			{
-				if( ETweenLeng::Element4 == rTween.GetLengType() )
-					pMID->SetVectorParameterValue( rMatData.m_ParameterName, rTween.GetValue( fPercent ) );
+				if( EMatParamLeng::Vector == rMatData.GetMatParamLeng() )
+					pMID->SetVectorParameterValue( rMatData.m_ParameterName, rTween.GetCurrent() );
 				else 
-					pMID->SetScalarParameterValue( rMatData.m_ParameterName, rTween.GetValueX( fPercent ) );
+					pMID->SetScalarParameterValue( rMatData.m_ParameterName, rTween.GetCurrentR() );
 			}
 		}
+		m_bSkipUpdateTime = bSkipUpdateTime;
 	}
 
 };
@@ -400,7 +407,7 @@ public :
 	}
 
 	void AppendMatData( FName baseMatName = NAME_None, FName tag = NAME_None, 
-		FName paraName = NAME_None, ETweenLeng eTweenLeng =ETweenLeng::Element4, 
+		FName paraName = NAME_None, EMatParamLeng eMatParamLeng =EMatParamLeng::Vector, 
 		ETweenFlow eMatFlow = ETweenFlow::Forward, bool isCreateMID = false )
 	{
 		FJobMat jobMat;
@@ -409,7 +416,7 @@ public :
 		jobMat.m_Tag = tag;
 
 		FMatData matData;
-		matData.SetData( paraName, eTweenLeng, eMatFlow );
+		matData.SetData( paraName, eMatParamLeng, eMatFlow );
 		jobMat.m_Datas.Add( matData );
 		
 		JobMatArray.Add( jobMat );
@@ -456,29 +463,6 @@ protected :
 	}
 #endif
 
-//		void __OvertimeMatrialReset()
-//		{
-//			for( FJobMat& rJobMat :	JobMatArray )
-//			{
-//				for( FMatData& rMatData : rJobMat.m_Datas )
-//				{
-//					for( UMaterialInstanceDynamic* pMID : rJobMat.m_MIDArray )
-//					{
-//						FTween& rTween = rMatData.m_Tween;
-//						FLinearColor vLastValue;
-//	//						if( rTween.IsForward() )
-//	//							vLastValue = rTween.GetTarget();
-//	//						else
-//							vLastValue = rTween.GetSource();
-//	
-//						if( ETweenLeng::Element4 == rTween.GetLengType()  )
-//							pMID->SetVectorParameterValue( rMatData.m_ParameterName, vLastValue );
-//						else
-//							pMID->SetScalarParameterValue( rMatData.m_ParameterName, vLastValue.R );
-//					}
-//				}
-//			}
-//		}
 
 	virtual void Tick( float fDeltaTime ) override
 	{
@@ -486,14 +470,14 @@ protected :
 		bool isPlay = false;
 		for( FJobMat& rJobMat :	JobMatArray )
 		{
-			if( rJobMat.IsPlaying() )
-				rJobMat.m_fElapseTime += fDeltaTime;
-			else
-			if( rJobMat.IsLoop() )
-				rJobMat.Play();
 
 			if( rJobMat.IsPlaying() )
+			{
 				isPlay = true;
+				if( rJobMat.m_bSkipUpdateTime )
+					continue;
+				rJobMat.m_fElapseTime += fDeltaTime;
+			}
 		}
 		if( false == isPlay )
 			return;
@@ -506,7 +490,12 @@ protected :
 				continue;
 
 			if( rJobMat.m_fTime < rJobMat.m_fElapseTime )		// Over time
-				rJobMat.Stop( false );		
+			{
+				if( rJobMat.IsLoop() )
+					rJobMat.m_fElapseTime = 0.f;
+				else
+					rJobMat.Stop( false );
+			}
 		}
 	}
 

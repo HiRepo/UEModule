@@ -75,7 +75,6 @@ void ACommonCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 
 
-
 void ACommonCharacter::PossessedFromAI( ACommonAIController* pAIController )
 {
 	ACommonAIController* pController = pAIController ? pAIController : m_AIController;

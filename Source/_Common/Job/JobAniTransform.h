@@ -22,30 +22,30 @@ struct FAniTData
 
 protected :
 	UPROPERTY( EditAnywhere )
-	ETransformType	Type 	= ETransformType::Scale;
+	ETransformType	m_eType 	= ETransformType::Scale;
 
 	UPROPERTY( EditAnywhere )
-	FTween 	Tween;
+	FTween 	m_Tween;
 
 public :
 	FAniTData()
 	{
-		SetType( Type, true );
+		SetType( m_eType, true );
 	}
 
-	FTween& GetTween(){ return Tween; }
+	FTween& GetTween(){ return m_Tween; }
 
-	ETransformType GetType() { return Type; }
+	ETransformType GetType() { return m_eType; }
 
 	void SetType( ETransformType eType, bool bInitialize = true )
 	{
-		Type = eType;
+		m_eType = eType;
 		if( bInitialize )
 		{
-			if( ETransformType::Scale == Type )
-				Tween.SetSource( FLinearColor{ 1.f, 1.f, 1.f, 1.f } );
+			if( ETransformType::Scale == eType )
+				m_Tween.SetSource( FLinearColor{ 1.f, 1.f, 1.f, 1.f } );
 			else	
-				Tween.SetSource( FLinearColor{ FVector::ZeroVector } );
+				m_Tween.SetSource( FLinearColor{ FVector::ZeroVector } );
 		}
 	}
 };
@@ -60,25 +60,28 @@ struct FAniTransform
 
 protected :
 	UPROPERTY( EditAnywhere, meta=(DisplayName="Play") )
-	bool  IsPlaying 		= false;
+	bool  m_bPlay 			= false;
+
+	UPROPERTY( EditAnywhere, meta=(DisplayName="Loop") )
+	bool  m_bLoop 			= false;
 
 	UPROPERTY( VisibleAnywhere )
-	ELifeCycle LifeCycle 	= ELifeCycle::Time;
+	ELifeCycle m_eLifeCycle	= ELifeCycle::Time;
 
-	UPROPERTY( EditAnywhere, meta=(UIMin = 0, ClampMin = 0) )
-	float 	Time			= 1.f;
+	UPROPERTY( EditAnywhere, meta=(UIMin=0, ClampMin=0, DisplayName="Time" ) )
+	float 	m_fTime			= 1.f;
 
-	UPROPERTY( EditAnywhere, meta=(UIMin = 0, ClampMin = 0) )
-	float 	ElapseTime 		= 0.f;
+	UPROPERTY( EditAnywhere, meta=(UIMin=0, ClampMin=0, DisplayName="Elapse Time" ) )
+	float 	m_fElapseTime 	= 0.f;
 
-	UPROPERTY( EditAnywhere )
-	FName	EnableTag		= NAME_None;
+	UPROPERTY( EditAnywhere, meta=(DisplayName="Tag") )
+	FName	m_Tag			= NAME_None;
 
-	UPROPERTY( EditAnywhere )
-	TArray<FAniTData>  ArrAniData;
+	UPROPERTY( EditAnywhere, meta=(DisplayName="AniData List") )
+	TArray<FAniTData>  m_ArrAniData;
 
-	UPROPERTY( VisibleAnywhere, Transient )
-	TArray<USceneComponent*> ArrComponent;
+	UPROPERTY( VisibleAnywhere, Transient, meta=(DisplayName="Component List")  )
+	TArray<USceneComponent*> m_ArrComponent;
 
 public :
 	FAniTransform()
@@ -87,95 +90,117 @@ public :
 
  	FAniTData& operator[]( int idx ) 
  	{ 
-		check( ArrAniData.IsValidIndex( idx ) );
- 		return ArrAniData[idx]; 
+		check( m_ArrAniData.IsValidIndex( idx ) );
+ 		return m_ArrAniData[idx]; 
  	}
 
-	ELifeCycle GetLifeCycle(){ return LifeCycle; }
+	ELifeCycle GetLifeCycle(){ return m_eLifeCycle; }
 
-	float GetTime(){ return Time; }
+	float GetTime(){ return m_fTime; }
 
-	int GetNumOfData(){ return ArrAniData.Num(); }
+	int GetNumOfData(){ return m_ArrAniData.Num(); }
 
 	void SetLifeCycle( ELifeCycle eLifeCycle )
 	{
-		LifeCycle = eLifeCycle;
+		m_eLifeCycle = eLifeCycle;
 	}
 
 	void SetTime( float fTime )
 	{
+		check( 0.f <= fTime );
+		m_fTime = fTime;
 	}
 
 	void AddComponent( USceneComponent* pComp )
 	{
-		ArrComponent.AddUnique( pComp );
+		m_ArrComponent.AddUnique( pComp );
 	}
 
 	void RemoveComponent( USceneComponent* pComp )
 	{
-		ArrComponent.Remove( pComp );
+		m_ArrComponent.Remove( pComp );
 	}
 
-	TArray<USceneComponent*>& GetComponents(){ return  ArrComponent; }
+	TArray<USceneComponent*>& GetComponents(){ return  m_ArrComponent; }
 
 private :
-	bool __IsOverTime(){ return Time < ElapseTime; }
-
 	void __RebuildAll( USceneComponent* pRootComponent )
 	{
-		ArrComponent.Reset();
-		TL::Component<USceneComponent>::TagAll( pRootComponent, ArrComponent, EnableTag );
+		m_ArrComponent.Reset();
+		TL::Component<USceneComponent>::TagAll( pRootComponent, m_ArrComponent, m_Tag );
 	}
 
 
-	DECLARE_DELEGATE_OneParam( DeleAniTransform, USceneComponent* )
-	DeleAniTransform	m_EventAniTrasnform;
+	bool m_bSkipUpdateTime = false;
+
 
 	void Tick( float fDeltaTime )
 	{
-		if( false == IsPlaying )
+		if( false == m_bPlay )
 			return;
-		if( Time < ElapseTime )
+
+		if( false == m_bSkipUpdateTime )
+			m_fElapseTime += fDeltaTime;
+
+		const float _fPercent = m_fElapseTime / m_fTime;
+
+		bool bSkipUpdateTime = false;
+		bool bStop = true;
+		for( FAniTData& rATD : m_ArrAniData )
 		{
-			ElapseTime = 0.f;
-			if( ELifeCycle::Infinity != LifeCycle )
-				IsPlaying = false;
-			return;
-		}
+			FTween& rTween = rATD.m_Tween;
 
-		ElapseTime += fDeltaTime;
+			if( 1.f < _fPercent && rTween.IsOverTime() )	
+				continue;
+			bStop = false;
 
-		const float _fPercent = __IsOverTime() ? 1.f : ElapseTime / Time;
+			if( false == rTween.Update( _fPercent, m_bLoop ) )
+				bSkipUpdateTime = true;
 
-		for( USceneComponent* pComp : ArrComponent )
-		{
-			for( FAniTData& rATD :  ArrAniData )
+			for( USceneComponent* pComp : m_ArrComponent )
 			{
-				switch( rATD.Type )
+				switch( rATD.m_eType )
 				{
 					case ETransformType::Scale :
-						pComp->SetRelativeScale3D ( FVector{ rATD.Tween.GetValue( _fPercent ) } );
+						pComp->SetRelativeScale3D ( FVector{ rTween.GetCurrent() } );
 					break;
 					case ETransformType::Location :
-						pComp->SetRelativeLocation( FVector{ rATD.Tween.GetValue( _fPercent ) } );
+						pComp->SetRelativeLocation( FVector{ rTween.GetCurrent() } );
 					break;
 					case ETransformType::Rotation :
-						FLinearColor val = rATD.Tween.GetValue( _fPercent );
+						FLinearColor val = rTween.GetCurrent();
 						pComp->SetRelativeRotation( FRotator{ val.R, val.G, val.B } );
 					break;
 				}
 			}
-
 		}
+		m_bSkipUpdateTime = bSkipUpdateTime;
 
+		if( bStop )
+		{
+			if( IsLoop() )
+				m_fElapseTime = 0.f;
+			else
+				m_bPlay = false;
+		}
 	}
 
 public :
 	void Play()
 	{ 
-		IsPlaying = true; 
-		ElapseTime = 0.f;
+		m_bPlay = true; 
+		m_fElapseTime = 0.f;
 	}
+
+	bool IsPlaying() { return  m_bPlay; }
+
+	bool IsFinished(){ return false == m_bPlay && m_fTime <= m_fElapseTime; }
+
+	bool IsLoop()
+	{ 
+		return m_bLoop && ELifeCycle::TimeAutoDelete != m_eLifeCycle; 
+	}
+
 
 };
 
@@ -255,22 +280,17 @@ protected :
 		{
 			FAniTransform& rAT = m_AniTDatas[i];
 			rAT.Tick( fDeltaTime );
-			if( rAT.__IsOverTime() )
-			{
-				if( ELifeCycle::TimeAutoDelete == rAT.LifeCycle && rAT.__IsOverTime() )
-					m_AniTDatas.RemoveAt( i );
-			}
+			if( ELifeCycle::TimeAutoDelete == rAT.m_eLifeCycle && rAT.IsFinished() )
+				m_AniTDatas.RemoveAt( i );
 		}
 
 		for( FAniTransform* pAT : m_AniTDataExterns )
 		{
 			FAniTransform& rAT = *pAT;
 			rAT.Tick( fDeltaTime );
-			if( ELifeCycle::TimeAutoDelete == rAT.LifeCycle && rAT.__IsOverTime() )
+			if( ELifeCycle::TimeAutoDelete == rAT.m_eLifeCycle && rAT.IsFinished() )
 				m_AniTDataExterns.Remove( pAT );
 		}
-
-//			_UpdateCurTimeDilation();
 	}
 
 #if WITH_EDITOR
@@ -282,7 +302,7 @@ protected :
 		{
 			UProperty* pProperty = pNode->GetValue();
 			const FName _name = pProperty->GetFName();
-			if( "EnableTag" == _name )
+			if( "m_Tag" == _name )
 				m_AniTDatas[_index].__RebuildAll( GetOwner()->GetRootComponent() );
 		}
 
