@@ -1,6 +1,7 @@
 #pragma once
 #include "EngineMinimal.h"
 #include "EngineUtils.h"
+#include "CommonInstance.h"
 #include "Actor/CommonCharacter.h"
 #include "BehaviorTree/BehaviorTree.h"
 //	class UBehaviorTreeComponent;

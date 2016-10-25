@@ -32,5 +32,5 @@ public :
 public:
 	UCommonInstance() {}
 
-	UCommonCommand* GetCommannd(){ return m_Command; }
+	UCommonCommand* GetCommand(){ return m_Command; }
 };
