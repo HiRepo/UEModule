@@ -9,19 +9,16 @@ DECLARE_LOG_CATEGORY_EXTERN(_Common, All, All)
         
 typedef unsigned int		uint;
 
-FORCEINLINE
 bool operator==(const FString& sName, const FName Name)
 {
 	return Name == *sName;
 }
 
-FORCEINLINE
 bool operator==(const FName Name, const FString& sName)
 {
 	return Name == *sName;
 }
 
-//	FORCEINLINE
 //	bool operator!=(const FName Name, const FString& sName)
 //	{
 //		return Name != *sName;
@@ -115,7 +112,6 @@ namespace TL
 	template< class T, bool = IsBaseOf<T,UInterface>::Val >
 	struct Actor
 	{
-		FORCEINLINE
 		static T* Get( const UActorComponent* pComponent )
 		{
 			type_assert( T, AActor ); 
@@ -193,21 +189,18 @@ namespace TL
 	template<class T, bool = IsBaseOf<T,AActor>::Val>
 	struct Create
 	{
-		FORCEINLINE
 		static T* Init( UObject* pOuter )
 		{
 			return Init( pOuter, T::StaticClass(), NAME_None );
 		}
 
 		template< class ... Ts >
-		FORCEINLINE
 		static T* Init( UObject* pOuter, FName Name, Ts ... ts )
 		{
 			return Init( pOuter, T::StaticClass(), Name, ts... );
 		}
 
 		template<class ... Ts > 
-		FORCEINLINE
 		static T* SubInit( UObject* pOuter, FName subName, Ts ... ts )
 		{
 			return SubInit( pOuter, T::StaticClass(), subName, ts... );
@@ -254,7 +247,6 @@ namespace TL
 	struct Create< T,true>
 	{
 		template< class ... Ts >
-		FORCEINLINE
 		static T* Init( UWorld* pWorld, Ts ... ts )
 		{
 			return 	Init( pWorld, T::StaticClass(), ts... );
@@ -463,7 +455,6 @@ namespace TL
 			return Cast<T>(rBTComponent.GetOwner());
 		}
 
-		FORCEINLINE
 		static T* Get(const UBehaviorTreeComponent* pBTComponent)
 		{
 			return pBTComponent ? TL::Controller<T>::Get( *pBTComponent ) : nullptr;
@@ -475,14 +466,12 @@ namespace TL
 			return pPawn ? Cast<T>(pPawn->GetController()) : nullptr;
 		}
 
-		FORCEINLINE
 		static T* Get( const UWorld* pWorld )
 		{
 			type_assert(T, AController);
 			return pWorld ? __ControllerInWorld<T>::Get( pWorld ) : nullptr;
 		}
 
-		FORCEINLINE
 		static T* Get( const UWorld* pWorld, int index )
 		{
 			type_assert(T, AController);
@@ -527,13 +516,22 @@ namespace TL
 	template <class T>
 	struct GameMode
 	{
-		FORCEINLINE
 		static T* Get( const UWorld* pWorld )
 		{
-			return pWorld ? Cast<T>(pWorld->GetAuthGameMode()) : nullptr;
+			type_assert(T, AGameMode);
+			return pWorld ? Cast<T>(pWorld->GetGameInstanace()) : nullptr;
 		}
 	};
 
+	template <class T>
+	struct GameInstance
+	{
+		static T* Get( const UWorld* pWorld )
+		{
+			type_assert(T, UGameInstance);
+			return pWorld ? Cast<T>(pWorld->GetAuthGameMode()) : nullptr;
+		}
+	};
 
 	inline UWorld* GetWorld( const AActor* pActor )
 	{
@@ -566,6 +564,5 @@ namespace TL
 	{
 		return TL::GameMode<AGameMode>::Get( pWorld ) ? false : true;
 	}
-
 }
 
