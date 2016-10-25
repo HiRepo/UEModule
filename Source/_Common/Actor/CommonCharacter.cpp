@@ -24,7 +24,6 @@ ACommonCharacter::ACommonCharacter()
 	m_JobMaterial->AppendMatData();				// Append Default FJobMat
 }
 
-
 void ACommonCharacter::PostLoadSubobjects( FObjectInstancingGraph* pOuterInstanceGraph )
 {
 	Super::PostLoadSubobjects( pOuterInstanceGraph );
@@ -48,17 +47,20 @@ void ACommonCharacter::PostEditChangeChainProperty( struct FPropertyChangedChain
 
 void ACommonCharacter::PostInitializeComponents()
 {
-	Super::PostInitializeComponents();
+	if( m_JobActorComposite )
+	{
+		m_JobActorComposite->Append( m_JobMaterial );
+		m_JobActorComposite->Append( m_JobAniTransform );
+		m_JobActorComposite->Append( m_JobTimeDilation );
+		m_JobActorComposite->Append( m_JobBehaviorTree );
+	}
+
+	Super::PostInitializeComponents();		// this happend AIController Possessed
 }
 
 
 void ACommonCharacter::BeginPlay()
 {
-	m_JobActorComposite->Append( m_JobMaterial );
-	m_JobActorComposite->Append( m_JobAniTransform );
-	m_JobActorComposite->Append( m_JobTimeDilation );
-	m_JobActorComposite->Append( m_JobBehaviorTree );
-
 	Super::BeginPlay();
 }
 

@@ -61,9 +61,10 @@ public :
 	void PossessedFromAI( ACommonAIController* pAIController = nullptr );
 
 protected :
-//		virtual void PostInitProperties() override;
 //		virtual void PostDuplicate(bool bDuplicateForPIE) override;
 //		virtual void PostLoad() override;
+//		virtual void PostActorCreated() override;
+//		virtual void PostInitProperties() override;
 	virtual void PostInitializeComponents() override;
 	virtual void PostLoadSubobjects( FObjectInstancingGraph* pOuterInstanceGraph ) override;
 

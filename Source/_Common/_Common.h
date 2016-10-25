@@ -9,12 +9,12 @@ DECLARE_LOG_CATEGORY_EXTERN(_Common, All, All)
         
 typedef unsigned int		uint;
 
-bool operator==(const FString& sName, const FName Name)
+inline bool operator==(const FString& sName, const FName Name)
 {
 	return Name == *sName;
 }
 
-bool operator==(const FName Name, const FString& sName)
+inline bool operator==(const FName Name, const FString& sName)
 {
 	return Name == *sName;
 }
@@ -519,7 +519,7 @@ namespace TL
 		static T* Get( const UWorld* pWorld )
 		{
 			type_assert(T, AGameMode);
-			return pWorld ? Cast<T>(pWorld->GetGameInstanace()) : nullptr;
+			return pWorld ? Cast<T>(pWorld->GetGameInstance()) : nullptr;
 		}
 	};
 
