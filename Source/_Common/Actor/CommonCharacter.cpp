@@ -14,14 +14,13 @@ ACommonCharacter::ACommonCharacter()
 	GetRootComponent()->SetupAttachment( m_JobActorComposite );
 
 	m_JobMaterial = TL::Create<UJobMaterial>::SubInit( this, "JobMaterial" );
+	m_JobMaterial->AppendMatData();				// Append Default FJobMat
 
 	m_JobTimeDilation = TL::Create<UJobTimeDilation>::SubInit( this, "JobTimeDilation" );
 
 	m_JobAniTransform = TL::Create<UJobAniTransform>::SubInit( this, "JobAniTransform" );
 
 	m_JobBehaviorTree = TL::Create<UJobBehaviorTree>::SubInit( this, "JobBehaviorTree" );
-
-	m_JobMaterial->AppendMatData();				// Append Default FJobMat
 }
 
 void ACommonCharacter::PostLoadSubobjects( FObjectInstancingGraph* pOuterInstanceGraph )
@@ -47,13 +46,14 @@ void ACommonCharacter::PostEditChangeChainProperty( struct FPropertyChangedChain
 
 void ACommonCharacter::PostInitializeComponents()
 {
-	if( m_JobActorComposite )
-	{
-		m_JobActorComposite->Append( m_JobMaterial );
-		m_JobActorComposite->Append( m_JobAniTransform );
-		m_JobActorComposite->Append( m_JobTimeDilation );
-		m_JobActorComposite->Append( m_JobBehaviorTree );
-	}
+	m_JobActorComposite = TL::Component<UJobActorComposite>::Get( this );
+//		if( m_JobActorComposite )
+//		{
+	m_JobActorComposite->Append( m_JobMaterial );
+	m_JobActorComposite->Append( m_JobAniTransform );
+	m_JobActorComposite->Append( m_JobTimeDilation );
+	m_JobActorComposite->Append( m_JobBehaviorTree );
+//		}
 
 	Super::PostInitializeComponents();		// this happend AIController Possessed
 }
