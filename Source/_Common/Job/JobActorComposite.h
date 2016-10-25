@@ -2,9 +2,7 @@
 #include "JobComposite.h"
 #include "JobActorComposite.generated.h"
 
-//	UCLASS( hideCategories=(Input, Rendering), showcategories=("Input|MouseInput", "Input|TouchInput"), BlueprintType)
-//	UCLASS(HideCategories=(Mobility, Rendering, LOD), Blueprintable, ClassGroup=Camera, meta=(BlueprintSpawnableComponent))
-UCLASS(ClassGroup=Job, Blueprintable, DefaultToInstanced, meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=Job, Blueprintable, meta=(BlueprintSpawnableComponent))
 class _COMMON_API UJobActorComposite : public USceneComponent
 {
 	GENERATED_BODY()
@@ -92,8 +90,8 @@ public :
 	inline T* FindJob(){ return m_JobComposite->FindJob<T>(); }
 
 	template< class T>
-	inline bool FindJob(TArray<T*>& rOutArray, bool isAppend = false)
+	inline bool FindJob(TArray<T*>& rOutArray )
 	{
-		return m_JobComposite->FindJob<T>( rOutArray, isAppend );
+		return m_JobComposite->FindJob<T>( rOutArray );
 	}
 };

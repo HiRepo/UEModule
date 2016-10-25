@@ -10,46 +10,34 @@ namespace TL
 		{
 			if( nullptr == pCharacter )
 				return nullptr;
-			return pCharacter->GetJobComposite().FindJob<T>();
+			if( UJobActorComposite* pActorComposite = pCharacter->GetJobActorComposite() )
+				return pActorComposite->FindJob<T>();
+			return nullptr;
 		}
 
 		static T* Get( AActor* pActor )
 		{
-			if( ACommonCharacter* pCommonCharacter = Cast<ACommonCharacter>( pActor ) )
-				return Get( pCommonCharacter );
-			
-//				UJobActorComposite* pJobActorComposite = TL::Component<UJobActorComposite>::Get( pActor );
-//				UJobComposite pRootComposite = pCharacter->GetJobComposite();
+			if( nullptr == pActor )
+				return nullptr;
+			if( UJobActorComposite* pActorComposite = TL::Component<UJobActorComposite>::Get( pActor ) )
+				return pActorComposite->FindJob<T>();
 			return nullptr;
 		}
 
-		static bool GetAll( ACommonCharacter* pCharacter, TArray<T*>& rOutArray, bool isAppend = false )
+		static void GetAll( ACommonCharacter* pCharacter, TArray<T*>& rOutArray )
 		{
 			if( nullptr == pCharacter )
-			{
-				if(	!isAppend )
-					rOutArray.Reset();
-				return false ;
-			}
-
-			return	pCharacter->GetJobComposite().FindJob<T>( rOutArray, isAppend );
-//			else
-//				UJobActorComposite* pJobActorComposite = TL::Component<UJobActorComposite>::Get( pActor );
-//				UJobComposite pRootComposite = pCharacter->GetJobComposite();
-
-			return false;
+				return ;
+			if( UJobActorComposite* pActorComposite = pCharacter->GetJobActorComposite() )
+				pActorComposite->FindJob<T>( rOutArray );
 		}
 
-
-		static bool GetAll( AActor* pActor, TArray<T*>& rOutArray, bool isAppend = false )
+		static void GetAll( AActor* pActor, TArray<T*>& rOutArray )
 		{
-			if( ACommonCharacter* pCommonCharacter = Cast<ACommonCharacter>( pActor ) )
-				return GetAll( pCommonCharacter, rOutArray, isAppend );
-
-//				UJobActorComposite* pJobActorComposite = TL::Component<UJobActorComposite>::Get( pActor );
-//				UJobComposite pRootComposite = pCharacter->GetJobComposite();
-
-			return false;
+			if( nullptr == pActor )
+				return ;
+			if( UJobActorComposite* pActorComposite = TL::Component<UJobActorComposite>::Get( pActor ) )
+				pActorComposite->FindJob<T>( rOutArray );
 		}
 	};
 

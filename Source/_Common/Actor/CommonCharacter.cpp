@@ -1,5 +1,5 @@
 #include "_COMMON.h"
-#include "Job/JobComposite.h"
+#include "Job/JobActorComposite.h"
 #include "Job/JobMaterial.h"
 #include "Job/JobTimeDilation.h"
 #include "Job/JobAniTransform.h"
@@ -10,28 +10,20 @@
 
 ACommonCharacter::ACommonCharacter()
 {
-	m_JobComposite = TL::Create<UJobComposite>::SubInit( this, "JobComposite", this );
+	m_JobActorComposite = CreateDefaultSubobject<UJobActorComposite>( "JobActorComposite" );
+	GetRootComponent()->SetupAttachment( m_JobActorComposite );
 
 	m_JobMaterial = TL::Create<UJobMaterial>::SubInit( this, "JobMaterial" );
-	m_JobComposite->Append( m_JobMaterial );
 
 	m_JobTimeDilation = TL::Create<UJobTimeDilation>::SubInit( this, "JobTimeDilation" );
-	m_JobComposite->Append( m_JobTimeDilation );
 
 	m_JobAniTransform = TL::Create<UJobAniTransform>::SubInit( this, "JobAniTransform" );
-	m_JobComposite->Append( m_JobAniTransform );
 
 	m_JobBehaviorTree = TL::Create<UJobBehaviorTree>::SubInit( this, "JobBehaviorTree" );
-	m_JobComposite->Append( m_JobBehaviorTree );
 
 	m_JobMaterial->AppendMatData();				// Append Default FJobMat
 }
 
-//	void ACommonCharacter::PostInitializeComponents()
-//	{
-//		Super::PostInitializeComponents();
-//		m_JobMaterial->Append();
-//	}
 
 void ACommonCharacter::PostLoadSubobjects( FObjectInstancingGraph* pOuterInstanceGraph )
 {
@@ -54,24 +46,32 @@ void ACommonCharacter::PostEditChangeChainProperty( struct FPropertyChangedChain
 #endif
 
 
-void ACommonCharacter::Tick(float fDeltaTime)
+void ACommonCharacter::PostInitializeComponents()
 {
-	Super::Tick( fDeltaTime );
-	m_JobComposite->Tick( fDeltaTime );
+	Super::PostInitializeComponents();
 }
 
 
 void ACommonCharacter::BeginPlay()
 {
+	m_JobActorComposite->Append( m_JobMaterial );
+	m_JobActorComposite->Append( m_JobAniTransform );
+	m_JobActorComposite->Append( m_JobTimeDilation );
+	m_JobActorComposite->Append( m_JobBehaviorTree );
+
 	Super::BeginPlay();
-	m_JobComposite->BeginPlay( this );			// Renew Property
 }
 
 
 void ACommonCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay( EndPlayReason );
-	m_JobComposite->EndPlay();
+}
+
+
+void ACommonCharacter::Tick(float fDeltaTime)
+{
+	Super::Tick( fDeltaTime );
 }
 
 

@@ -1,8 +1,8 @@
 #pragma once
 #include "CommonCharacter.generated.h"
 
-class UJobComponent;
 class UJobComposite;
+class UJobActorComposite;
 class UJobMaterial;
 class UJobTimeDilation;
 class UJobAniTransform;
@@ -19,9 +19,8 @@ protected :
 //		UPROPERTY(EditAnywhere, Category="Job", meta=(DisplayName="Job Class Array"))
 //		TArray<TSubclassOf<UJobComponent>>	m_pJobClassArray;
 
-	UPROPERTY(EditAnywhere, Category="Job", meta=(DisplayName="Composite"))
-// UPROPERTY(VisibleAnywhere, Transient, Category="Job", meta=(DisplayName="Composite") )
-	UJobComposite* m_JobComposite		= nullptr;
+ 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Job", meta=(DisplayName="ActorComposite"))
+	UJobActorComposite* m_JobActorComposite = nullptr; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Job", meta=(DisplayName="Material"))
 	UJobMaterial* m_JobMaterial			= nullptr;
@@ -36,8 +35,7 @@ protected :
     UJobBehaviorTree* m_JobBehaviorTree = nullptr;
 
 public :
-
-	UJobComposite& GetJobComposite(){ return *m_JobComposite; }
+	UJobActorComposite* GetJobActorComposite(){ return m_JobActorComposite; }
 
     UJobMaterial& GetJobMaterial(){	return  *m_JobMaterial; }
 
@@ -66,7 +64,7 @@ protected :
 //		virtual void PostInitProperties() override;
 //		virtual void PostDuplicate(bool bDuplicateForPIE) override;
 //		virtual void PostLoad() override;
-//		virtual void PostInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
 	virtual void PostLoadSubobjects( FObjectInstancingGraph* pOuterInstanceGraph ) override;
 
 

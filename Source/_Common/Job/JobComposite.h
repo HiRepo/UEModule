@@ -199,11 +199,9 @@ public :
 //		}
 
 	template< class T>
-	bool FindJob(TArray<T*>& rOutArray, bool isAppend = false)
+	bool FindJob( TArray<T*>& rOutArray )
 	{
 		type_assert(T, UJobComponent);
-		if (!isAppend)
-			rOutArray.Reset();
 
 		const int _arrayNum = rOutArray.Num();
 		for (UJobComponent* pComponent : m_Components)
