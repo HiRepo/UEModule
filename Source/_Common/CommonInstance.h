@@ -12,20 +12,14 @@ protected :
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="InGameMode")
 	TSubclassOf<UCommonCommand> CommandClass = nullptr;
 
-public :
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly)
 	UCommonCommand* m_Command = nullptr;
 
+public :
 	virtual bool Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Out = *GLog) override
 	{
 		return m_Command->Exec( InWorld, Cmd, Out );
 	}
-
-public:
-	UCommonInstance() {}
-//		m_GameCommnd = (UGameCommand*)CreateDefaultSubobject("GameCommnad", UGameCommand::StaticClass(), UGameCommand::StaticClass(), /*bIsRequired =*/ true, /*bIsAbstract =*/ false, /*bTransient*/false);
-
-	UCommonCommand* GetCommannd(){ return m_Command; }
 
 	virtual void Init() override
 	{
@@ -34,4 +28,9 @@ public:
 		m_Command = NewObject<UCommonCommand>( this, CommandClass );
 		m_Command->Init();
 	}
+
+public:
+	UCommonInstance() {}
+
+	UCommonCommand* GetCommannd(){ return m_Command; }
 };

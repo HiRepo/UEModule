@@ -533,6 +533,19 @@ namespace TL
 		}
 	};
 
+	template <class T>
+	struct GameCommand
+	{
+		static T* Get( const UWorld* pWorld )
+		{
+			type_assert(T, UCommonCommand);
+			if( auto* pGameInstance = TL::GameInstance<UCommonInstance>::Get( pWorld ) )
+				if( T* pCommand = Cast<T>(pGameInstance->GetCommand()) )
+					return pCommand;
+			return nullptr;
+		}
+	};
+
 	inline UWorld* GetWorld( const AActor* pActor )
 	{
 		return pActor ? ( !pActor->HasAnyFlags(RF_ClassDefaultObject) ? pActor->GetWorld() : GWorld ) : nullptr;

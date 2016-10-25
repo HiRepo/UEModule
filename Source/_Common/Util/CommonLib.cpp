@@ -6,6 +6,9 @@
 #include "Actor/CommonCharacter.h"
 #include "CommonLib.h"
 
+
+
+//--------------		Character 	----------------------------------------------------
 ACommonCharacter* UCommonLib::GetCommonCharacter( UObject* pObject )
 {
 	if( nullptr == pObject )
