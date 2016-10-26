@@ -47,13 +47,10 @@ void ACommonCharacter::PostEditChangeChainProperty( struct FPropertyChangedChain
 void ACommonCharacter::PostInitializeComponents()
 {
 	m_JobActorComposite = TL::Component<UJobActorComposite>::Get( this );
-//		if( m_JobActorComposite )
-//		{
 	m_JobActorComposite->Append( m_JobMaterial );
 	m_JobActorComposite->Append( m_JobAniTransform );
 	m_JobActorComposite->Append( m_JobTimeDilation );
 	m_JobActorComposite->Append( m_JobBehaviorTree );
-//		}
 
 	Super::PostInitializeComponents();		// this happend AIController Possessed
 }

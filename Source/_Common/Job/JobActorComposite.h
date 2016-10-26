@@ -2,7 +2,7 @@
 #include "JobComposite.h"
 #include "JobActorComposite.generated.h"
 
-UCLASS(ClassGroup=Job, DefaultToInstanced, Blueprintable, meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=Job, Blueprintable, meta=(BlueprintSpawnableComponent))
 class _COMMON_API UJobActorComposite : public USceneComponent
 {
 	GENERATED_BODY()

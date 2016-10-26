@@ -10,9 +10,7 @@ namespace TL
 		{
 			if( nullptr == pCharacter )
 				return nullptr;
-			if( UJobActorComposite* pActorComposite = pCharacter->GetJobActorComposite() )
-				return pActorComposite->FindJob<T>();
-			return nullptr;
+			return pCharacter->GetJobActorComposite()->FindJob<T>();
 		}
 
 		static T* Get( AActor* pActor )
@@ -28,8 +26,7 @@ namespace TL
 		{
 			if( nullptr == pCharacter )
 				return ;
-			if( UJobActorComposite* pActorComposite = pCharacter->GetJobActorComposite() )
-				pActorComposite->FindJob<T>( rOutArray );
+			pCharacter->GetJobActorComposite()->FindJob<T>( rOutArray );
 		}
 
 		static void GetAll( AActor* pActor, TArray<T*>& rOutArray )

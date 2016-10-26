@@ -29,7 +29,7 @@ public :
 protected :
 	void _init( AActor* pActor, UJobActorComposite* pJobActorComposite = nullptr ) 
 	{
-//			check( pActor );
+//		check( pActor );
 		_SetOwner( pActor );
 
 		m_pJobActorComposite = pJobActorComposite;

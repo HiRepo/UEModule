@@ -429,6 +429,7 @@ namespace TL
 	{
 		static T* Get( const UWorld* pWorld )
 		{
+			type_assert(T, APlayerController);
 			FConstPlayerControllerIterator Iterator = pWorld->GetPlayerControllerIterator();
 			while( Iterator )
 			{
@@ -440,6 +441,7 @@ namespace TL
 
 		static T* Get( const UWorld* pWorld, int index )
 		{
+			type_assert(T, APlayerController);
 			FConstPlayerControllerIterator Iterator = pWorld->GetPlayerControllerIterator();
 			Iterator += index;
 			return Cast<T>(*Iterator);
@@ -515,21 +517,21 @@ namespace TL
 
 //-----------------------------------------------------------------------------------
 	template <class T>
-	struct GameMode
-	{
-		static T* Get( const UWorld* pWorld )
-		{
-			type_assert(T, AGameMode);
-			return pWorld ? Cast<T>(pWorld->GetGameInstance()) : nullptr;
-		}
-	};
-
-	template <class T>
 	struct GameInstance
 	{
 		static T* Get( const UWorld* pWorld )
 		{
 			type_assert(T, UGameInstance);
+			return pWorld ? Cast<T>(pWorld->GetGameInstance()) : nullptr;
+		}
+	};
+
+	template <class T>
+	struct GameMode
+	{
+		static T* Get( const UWorld* pWorld )
+		{
+			type_assert(T, AGameMode);
 			return pWorld ? Cast<T>(pWorld->GetAuthGameMode()) : nullptr;
 		}
 	};
