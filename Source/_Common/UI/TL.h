@@ -10,41 +10,42 @@ namespace TL{
 		{
 			type_assert( T, UWidget ); 
 			if( UWidgetTree* pWidgetTree = pWidget->WidgetTree )
-				return pWidgetTree->FindWidget( name );
+				return Cast<T>( pWidgetTree->FindWidget( name ) );
 			return nullptr;
 		}
 
 		template <class TFilter=NullFilter>
-		static T* Get( UUserWidget* pWidget, TFilter filter=NullFilter() )
+		static T* Get( UUserWidget* pRootWidget, TFilter filter=NullFilter() )
 		{
 			type_assert( T, UWidget ); 
-			UWidgetTree* pWidgetTree = pWidget->WidgetTree;
+			UWidgetTree* pWidgetTree = pRootWidget->WidgetTree;
 			if( nullptr == pWidgetTree )
 				return nullptr;
 			
+			T* pFindWidget = nullptr;
 			pWidgetTree->ForEachWidget( [&]( UWidget* pWidget )
 				{ 
-					T* pFindWidget = Cast<T>( pWidget );
-					if( pFindWidget && filter( pFindWidget ) )
-						return pFindWidget;
+					T* 	pCastWidget = Cast<T>( pWidget );
+					if( pCastWidget && filter( pCastWidget ) )
+						pFindWidget = pCastWidget;
 				});
-			return nullptr;
+			return pFindWidget;
 		}
 
 
 		template <class TFilter=NullFilter>
-		static void GetAll( UUserWidget* pWidget, TArray<T*>& rOutArray, TFilter filter=NullFilter() )
+		static void GetAll( UUserWidget* pRootWidget, TArray<T*>& rOutArray, TFilter filter=NullFilter() )
 		{
 			type_assert( T, UWidget ); 
-			UWidgetTree* pWidgetTree = pWidget->WidgetTree;
+			UWidgetTree* pWidgetTree = pRootWidget->WidgetTree;
 			if( nullptr == pWidgetTree )
 				return ;
 			
 			pWidgetTree->ForEachWidget( [&]( UWidget* pWidget )
 				{ 
-					T* pFindWidget = Cast<T>( pWidget );
-					if( pFindWidget && filter( pFindWidget ) )
-						rOutArray.Add( pFindWidget );
+					T* pCastWidget = Cast<T>( pWidget );
+					if( pCastWidget && filter( pCastWidget ) )
+						rOutArray.Add( pCastWidget );
 				});
 
 		}
