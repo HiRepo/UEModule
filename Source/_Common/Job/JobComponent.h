@@ -24,23 +24,23 @@ protected :
 
 protected :
 	UFUNCTION(BlueprintImplementableEvent, meta=(BlueprintProtected, DisplayName = "BeginPlay"))
-	void _BeginPlay(); 
+	void _BeginPlay();
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(BlueprintProtected,DisplayName = "EndPlay"))
-	void _EndPlay(); 
+	void _EndPlay();
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(BlueprintProtected, DisplayName = "Tick"))
 	void _Tick( float fDeltaTime );
 
 	UFUNCTION(BlueprintImplementableEvent, meta=(BlueprintProtected, DisplayName = "OnAttach"))
-	void _OnAttach();                                                
-                                                                     
+	void _OnAttach();
+
 	UFUNCTION(BlueprintImplementableEvent, meta=(BlueprintProtected, DisplayName = "OnDetach"))
-	void _OnDetach();                                                
-                                                                     
+	void _OnDetach();
+
 	UFUNCTION(BlueprintImplementableEvent, meta=(BlueprintProtected, DisplayName = "Do"))
-	void _Do();                                                      
-                                                                     
+	void _Do();
+
 	UFUNCTION(BlueprintImplementableEvent, meta=(BlueprintProtected, DisplayName = "Init"))
 	void _Init();
 
@@ -52,7 +52,7 @@ protected :
 	virtual void OnAttach()
 	{ 
 		if( false == FUObjectThreadContext::Get().IsRoutingPostLoad )
-			_OnAttach(); 
+			_OnAttach();
 	}
 public :
 	virtual void operator()(){ _Do(); } 

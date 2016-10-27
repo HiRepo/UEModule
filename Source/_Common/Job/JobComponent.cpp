@@ -41,9 +41,12 @@ void UJobComposite::Append( TSubclassOf<UJobComponent> pJobClass )
 
 void UJobTimeDilation::_UpdateCurTimeDilation()
 {
+	// UE4.12 Bug, TimeDilation should't be zero. NofifyState not work correctly.
+	float fTimeDilation = FMath::IsNearlyZero(m_fTimeDilation) ? 0.0001f : m_fTimeDilation;
+	
 	if( AActor* pOwner = GetOwner() )
 	{
-		pOwner->CustomTimeDilation  = m_fTimeDilation;
+		pOwner->CustomTimeDilation  = fTimeDilation;
 
 		if( USkeletalMeshComponent* pSkeleton = TL::Component<USkeletalMeshComponent>::Get( pOwner ) )
 			pSkeleton->GlobalAnimRateScale = m_fTimeScaleAnim;
@@ -54,7 +57,7 @@ void UJobTimeDilation::_UpdateCurTimeDilation()
 	{
 		UWorld* pWorld = pJobActorComposite->GetWorld();
 		if( TL::IsEditorWorld( pWorld ) )
-			UCommonLib::SetTimeDilation( pWorld, m_fTimeDilation );
+			UCommonLib::SetTimeDilation( pWorld, fTimeDilation );
 
 		USkeletalMeshComponent* pSkeleton = Cast<USkeletalMeshComponent>( pJobActorComposite->GetAttachParent() );
 		check( pSkeleton );
