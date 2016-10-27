@@ -25,6 +25,7 @@ namespace TL{
 			T* pFindWidget = nullptr;
 			pWidgetTree->ForEachWidget( [&]( UWidget* pWidget )
 				{ 
+					if( pFindWidget ) return;
 					T* 	pCastWidget = Cast<T>( pWidget );
 					if( pCastWidget && filter( pCastWidget ) )
 						pFindWidget = pCastWidget;
