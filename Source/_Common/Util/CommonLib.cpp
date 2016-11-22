@@ -4,7 +4,37 @@
 #include "Job/JobBehaviorTree.h"
 #include "Job/JobActorComposite.h"
 #include "Actor/CommonCharacter.h"
+#include "Ani/CommonAnimInstance.h"
 #include "CommonLib.h"
+
+
+bool UCommonLib::IsGamePlaying( UWorld* pWorld )
+{
+	if( TL::GameInstance<UGameInstance>::Get( pWorld ) )
+		return true;
+	return false;
+}
+
+//--------------		Json 	----------------------------------------------------
+void UCommonLib::JSonToString( const TSharedPtr<FJsonObject> jObject, FString& outString )
+{	
+	TSharedRef<TJsonWriter<TCHAR>> jWriter = TJsonWriterFactory<>::Create( &outString );
+	FJsonSerializer::Serialize( jObject.ToSharedRef(), jWriter );
+}
+ 
+TSharedPtr<FJsonObject> UCommonLib::GetJsonObject( FHttpResponsePtr response )
+{
+	TSharedPtr<FJsonObject> jObject;
+	if( response->GetContentType() == "application/json" )
+	{
+		jObject = MakeShareable(new FJsonObject());
+
+		TSharedRef<TJsonReader<TCHAR>> jReader = TJsonReaderFactory<TCHAR>::Create( response->GetContentAsString() );
+
+		FJsonSerializer::Deserialize( jReader, jObject );
+	}
+	return jObject;
+}
 
 
 
@@ -30,6 +60,56 @@ ACommonCharacter* UCommonLib::GetCommonCharacter( UObject* pObject )
 	// KHI_ERROR
 	return pCharacter;
 }
+
+
+//--------------	AnimInstance 	----------------------------------------------------
+float UCommonLib::GetAnimElapsePercent( USkeletalMeshComponent* pSkel, FName MachineName )
+{
+	if( pSkel->IsAnimBlueprintInstanced() )
+	{
+		if( UCommonAnimInstance* pAniminstance = Cast<UCommonAnimInstance>( pSkel->GetAnimInstance() ) )
+		{
+			return pAniminstance->GetElapsePercent( MachineName );
+		}
+	}
+	return -1.f;
+}
+
+float UCommonLib::GetAnimElapse( USkeletalMeshComponent* pSkel, FName MachineName )
+{
+	if( pSkel->IsAnimBlueprintInstanced() )
+	{
+		if( UCommonAnimInstance* pAniminstance = Cast<UCommonAnimInstance>( pSkel->GetAnimInstance() ) )
+		{
+			return pAniminstance->GetElapsedTime( MachineName );
+		}
+	}
+	return -1.f;
+}
+
+int UCommonLib::GetAnimFrame( USkeletalMeshComponent* pSkel, FName MachineName )
+{
+	if( pSkel->IsAnimBlueprintInstanced() )
+	{
+		if( UCommonAnimInstance* pAniminstance = Cast<UCommonAnimInstance>( pSkel->GetAnimInstance() ) )
+		{
+			return pAniminstance->GetAnimFrame( MachineName );
+		}
+	}
+	return -1;
+}
+
+
+bool UCommonLib::IsLastFrame( USkeletalMeshComponent* pSkel, FName MachineName )
+{
+	if( pSkel->IsAnimBlueprintInstanced() )
+	{
+		if( UCommonAnimInstance* pAniminstance = Cast<UCommonAnimInstance>( pSkel->GetAnimInstance() ) )
+			return pAniminstance->IsLastFrame( MachineName );
+	}
+	return false;
+}
+
 
 
 //--------------		Job 	----------------------------------------------------

@@ -7,7 +7,7 @@
 UENUM(BlueprintType)
 enum class EMatParamLeng : uint8
 {
-	Scale,
+	Scalar,
 	Vector,
 };
 
@@ -95,10 +95,16 @@ struct FJobMat
 
 protected :
 	UPROPERTY( EditAnywhere, meta=(DisplayName="Base Name") )
-	FName 	m_BaseName;		// Selector. if Name is None, not filtering.
+	FName 	m_BaseName;				// Selector. if Name is None, not filtering.
+
+	UPROPERTY( EditAnywhere, meta=(DisplayName="Component Tag") )
+	FName 	m_CompTag = NAME_None;	// Selector. if Tag is None, not filtering.
 
 	UPROPERTY( EditAnywhere, meta=(DisplayName="Tag") )
-	FName 	m_Tag;			// Selector. if Tag is None, not filtering.
+	TArray<FName> m_Tag;		
+
+	UPROPERTY( EditAnywhere, meta=(DisplayName="Ignore Other Actor") )
+	bool 	m_bIgnoreOtherActor = true;		
 
 	UPROPERTY( EditAnywhere, meta=(DisplayName="Is Loop") )
 	bool	m_bLoop 	= false;
@@ -228,6 +234,29 @@ public :
 	}
 
 
+	void SetParameter( int index, const float fValue ) 
+	{
+ 		FMatData& rMatData = (*this)[index];
+		check( EMatParamLeng::Scalar == rMatData.GetMatParamLeng() );
+
+		for( UMaterialInstanceDynamic* pMID : m_MIDArray )
+		{
+			pMID->SetScalarParameterValue( rMatData.m_ParameterName, fValue );
+		}
+	}
+
+	void SetParameter( int index, const FLinearColor& vColor ) 
+	{
+ 		FMatData& rMatData = (*this)[index];
+		check( EMatParamLeng::Vector == rMatData.GetMatParamLeng() );
+
+		for( UMaterialInstanceDynamic* pMID : m_MIDArray )
+		{
+			pMID->SetVectorParameterValue( rMatData.m_ParameterName, vColor );
+		}
+	}
+
+
 public :
 	void operator()()
 	{
@@ -310,6 +339,16 @@ public :
 		return (*this)[ idx ];
 	}
 
+	FJobMat* FindJobMat( FName tag )
+	{
+		for( FJobMat& rJobMat :	JobMatArray )
+		{
+			if( rJobMat.m_Tag.Contains(tag) )
+				return &rJobMat;
+		}
+		return nullptr;
+	}
+
 	void RebuildMat( int idx, bool isCreateMID = true )
 	{
 		RebuildMat( (*this)[idx], isCreateMID );
@@ -334,7 +373,12 @@ public :
 			return;
 
 		TArray<UMeshComponent*> meshComponentArray;
-		TL::Component<UMeshComponent>::TagAll( pOwner, meshComponentArray, rJobMat.m_Tag );
+
+		if( rJobMat.m_bIgnoreOtherActor )
+			TL::Component<UMeshComponent>::TagAll( pOwner, meshComponentArray, rJobMat.m_CompTag );
+		else
+			TL::Component<UMeshComponent>::TagAll( pOwner->GetRootComponent(), meshComponentArray, rJobMat.m_CompTag );
+
 		for( UMeshComponent* pMeshComponent  : meshComponentArray )
 		{
 			TArray<UMaterialInterface*> matArray;
@@ -406,14 +450,14 @@ public :
 		RebuildMat( rJobMat, isCreateMID );
 	}
 
-	void AppendMatData( FName baseMatName = NAME_None, FName tag = NAME_None, 
+	void AppendMatData( FName baseMatName = NAME_None, FName compTag = NAME_None, 
 		FName paraName = NAME_None, EMatParamLeng eMatParamLeng =EMatParamLeng::Vector, 
 		ETweenFlow eMatFlow = ETweenFlow::Forward, bool isCreateMID = false )
 	{
 		FJobMat jobMat;
 
 		jobMat.m_BaseName = baseMatName;
-		jobMat.m_Tag = tag;
+		jobMat.m_CompTag = compTag;
 
 		FMatData matData;
 		matData.SetData( paraName, eMatParamLeng, eMatFlow );
@@ -441,21 +485,22 @@ protected :
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty( struct FPropertyChangedChainEvent& rPropertyChangedEvent ) override
 	{
-		const int _index = rPropertyChangedEvent.GetArrayIndex( "m_Datas" );
+		const int _indexMat = rPropertyChangedEvent.GetArrayIndex( "JobMatArray" );
+		const int _indexData = rPropertyChangedEvent.GetArrayIndex( "m_Datas" );
 
 		for( auto* pNode = rPropertyChangedEvent.PropertyChain.GetActiveNode(); pNode; pNode = pNode->GetNextNode() )
 		{
 			FName name = pNode->GetValue()->GetFName();
 			if( "m_fElapseTime" == name || "m_fTime" == name )
-				(*this)();
+				JobMatArray[_indexMat]();
 			else
-			if( "m_Tag" == name || "m_BaseName" == name )
-				RebuildMat( _index );
+			if( "m_CompTag" == name || "m_BaseName" == name )
+				RebuildMat( _indexData );
 			else
 			if( "m_Tween" == name )
 			{
-				RebuildMat( _index );
-				(*this)();
+				RebuildMat( _indexData );
+				JobMatArray[_indexMat]();
 			}
 		}
 
@@ -470,7 +515,6 @@ protected :
 		bool isPlay = false;
 		for( FJobMat& rJobMat :	JobMatArray )
 		{
-
 			if( rJobMat.IsPlaying() )
 			{
 				isPlay = true;
@@ -531,7 +575,8 @@ public :
 		Super::operator()();
 		for( FJobMat& rJobMat :	JobMatArray )
 		{
-			rJobMat();
+			if( rJobMat.IsPlaying() )
+				rJobMat();
 		}
 	}
 };

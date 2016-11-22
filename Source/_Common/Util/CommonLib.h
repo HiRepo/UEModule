@@ -2,6 +2,7 @@
 #include "GameFramework/WorldSettings.h"
 #include "Engine.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
+#include "Http.h"
 #include "CommonLib.generated.h"
 
 class UBlackboardComponent;
@@ -39,7 +40,27 @@ public :
 			return TL::GetWorld( (AActor*)pObject );
 		return TL::GetWorld( pObject );
 	}
-	
+
+	UFUNCTION(BlueprintPure, Category="Util|Common" )
+	static bool IsGamePlaying( UWorld* pWorld );
+
+//----------		Json		---------------------------------------------------
+	static void JSonToString( const TSharedPtr<FJsonObject> jObject, FString& outString );
+
+	static TSharedPtr<FJsonObject> GetJsonObject( FHttpResponsePtr response );
+	//
+//----------		AnimInstance		---------------------------------------------------
+	UFUNCTION(BlueprintCallable, Category="Util|Common" )
+	static float GetAnimElapsePercent( USkeletalMeshComponent* pSkel, FName MachineName );
+
+	UFUNCTION(BlueprintCallable, Category="Util|Common" )
+	static float GetAnimElapse( USkeletalMeshComponent* pSkel, FName MachineName );
+
+	UFUNCTION(BlueprintCallable, Category="Util|Common" )
+	static int GetAnimFrame( USkeletalMeshComponent* pSkel, FName MachineName );
+
+	UFUNCTION(BlueprintCallable, Category="Util|Common" )
+	static bool IsLastFrame( USkeletalMeshComponent* pSkel, FName MachineName );
 
 //----------		Controller		---------------------------------------------------
 	UFUNCTION(BlueprintPure, Category="Util|Common", meta=(DefaultToSelf="pPawn") )

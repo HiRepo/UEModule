@@ -5,6 +5,7 @@
 #include "Job/JobAniTransform.h"
 #include "Job/JobBehaviorTree.h"
 #include "Controller/CommonAIController.h"
+#include "Util/CommonLib.h"
 #include "CommonCharacter.h"
 
 

@@ -2,6 +2,7 @@
 #include "EngineMinimal.h"
 #include "EngineUtils.h"
 #include "CommonInstance.h"
+#include "Util/CommonCommand.h"
 #include "Actor/CommonCharacter.h"
 #include "BehaviorTree/BehaviorTree.h"
 //	class UBehaviorTreeComponent;
@@ -332,6 +333,7 @@ namespace TL
 		}
 
 
+		// Only contains Components that Owner is same to pActor.
 		template <class TFilter=NullFilter>
 		static T* Get( AActor* pActor, TFilter filter = NullFilter() )
 		{
@@ -342,6 +344,7 @@ namespace TL
 			return (pComponent && filter(pComponent)) ? pComponent : nullptr;
 		}
 
+		// Only contains Components that Owner is same to pActor.
 		template <class TFilter=NullFilter>
 		static void GetAll( AActor* pActor, TArray<T*>& rOutArray, TFilter filter = NullFilter() )
 		{
