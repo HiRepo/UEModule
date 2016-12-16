@@ -3,7 +3,7 @@
 #include "CommonGameMode.generated.h"
 
 UCLASS()
-class _COMMON_API ACommonGameMode : public AGameMode
+class _COMMON_API ACommonGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 

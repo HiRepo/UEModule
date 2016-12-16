@@ -85,17 +85,18 @@ namespace TL
 
 	//-----------------------------------------------------------------------------------
 
-#if WITH_EDITOR
-#define EnumToString( EType, Val )		TL::_EnumToString<EType>( L#EType, Val )
+//	#if WITH_EDITOR
+#define EnumToString( EType, Val )		TL::_EnumToString<EType>( L ## #EType, Val )
 	template< class TEnum >
 	inline FString _EnumToString(const TCHAR* psEnumType, TEnum eVal)
 	{
 		const UEnum* pEnumObj = FindObject<UEnum>(ANY_PACKAGE, psEnumType, true);
-		return pEnumObj ? pEnumObj->GetDisplayNameTextByValue((int)eVal).ToString() : FString("Invaild");
+//			return pEnumObj ? pEnumObj->GetDisplayNameTextByValue((int)eVal).ToString() : FString("Invaild");
+		return pEnumObj ? pEnumObj->GetEnumName((int)eVal) : FString("Invaild");
 	}
 
 	// Not DisplayName 
-#define StringToEnum( EType, Str )		TL::_StringToEnum<EType>( L#EType, Str )
+#define StringToEnum( EType, Str )		TL::_StringToEnum<EType>( L ## #EType, Str )
 	template< class TEnum >
 	inline TEnum _StringToEnum(const TCHAR* psEnumType, const FString& sVal)
 	{
@@ -103,7 +104,7 @@ namespace TL
 		return pEnumObj ? (TEnum)pEnumObj->GetValueByName(FName(*sVal)) : TEnum(0);
 	}
 
-#endif // WITH_EDITOR
+//	#endif // WITH_EDITOR
 
 
 
@@ -534,7 +535,7 @@ namespace TL
 	{
 		static T* Get( const UWorld* pWorld )
 		{
-			type_assert(T, AGameMode);
+			type_assert(T, AGameModeBase);
 			return pWorld ? Cast<T>(pWorld->GetAuthGameMode()) : nullptr;
 		}
 	};
@@ -551,37 +552,5 @@ namespace TL
 			return nullptr;
 		}
 	};
-
-	inline UWorld* GetWorld( const AActor* pActor )
-	{
-		return pActor ? ( !pActor->HasAnyFlags(RF_ClassDefaultObject) ? pActor->GetWorld() : GWorld ) : nullptr;
-	}
-
-	// Ref : UEngine::GetWorldFromContextObject
-	inline UWorld* GetWorld( const UObject* pObject )
-	{
-		if( nullptr == pObject )
-			return nullptr;
-		UWorld* pWorld = pObject->GetWorld();
-		if( pWorld )
-			return pWorld;
-
-//		if( UObject* pOuter = pObject->GetOuter() )
-		for( UObject* pOuter = pObject->GetOuter(); pOuter; pOuter = pOuter->GetOuter() )
-		{
-			pWorld = pOuter->GetWorld();
-			if( pWorld )
-				return pWorld;
-		}
-
-		bool bSupported = true;
-		pWorld = pObject->GetWorldChecked( bSupported );
-		return bSupported ? pWorld : GWorld;
-	}
-
-	inline bool IsEditorWorld( const UWorld* pWorld )
-	{
-		return TL::GameMode<AGameMode>::Get( pWorld ) ? false : true;
-	}
 }
 

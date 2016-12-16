@@ -1,8 +1,9 @@
 ﻿#pragma once
-#include "GameFramework/WorldSettings.h"
 #include "Engine.h"
-#include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
 #include "Http.h"
+#include "GameFramework/WorldSettings.h"
+#include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
+#include "_Common.h"
 #include "CommonLib.generated.h"
 
 class UBlackboardComponent;
@@ -21,7 +22,7 @@ public :
 	UFUNCTION(BlueprintPure, Category="Util|Common", meta=(WorldContext="pWorldContext", DisplayName="NewObject", CompactNodeTitle = "NewObject", Keywords="NewObject"))
 	static UObject* NewObject( UObject* pWorldContext, UClass* pClass )
 	{
-		UWorld* pWorld = TL::GetWorld( pWorldContext );
+		UWorld* pWorld = UCommonLib::FindWorld( pWorldContext );
 		UObject* pOuter = (UObject*)GetTransientPackage();
 		UObject* pNewObject = ::NewObject<UObject>( pOuter, pClass );
 		if( pNewObject )
@@ -37,8 +38,15 @@ public :
 	{
 		UStruct* pClass = pObject->GetClass();
 		if( pClass->IsChildOf( AActor::StaticClass() ) )
-			return TL::GetWorld( (AActor*)pObject );
-		return TL::GetWorld( pObject );
+			return UCommonLib::FindWorld( (AActor*)pObject );
+		return UCommonLib::FindWorld( pObject );
+	}
+
+	UFUNCTION(BlueprintPure, Category="Util|Common" )
+	static UWorld* FindWorld( const UObject* pObject );
+	static UWorld* FindWorld( const AActor* pActor )
+	{
+		return pActor ? ( !pActor->HasAnyFlags(RF_ClassDefaultObject) ? pActor->GetWorld() : GWorld ) : nullptr;
 	}
 
 	UFUNCTION(BlueprintPure, Category="Util|Common" )
@@ -73,7 +81,7 @@ public :
 	UFUNCTION(BlueprintPure, Category="Util|Common", meta=(WorldContext="pWorldContext"))
 	static APlayerController* GetPlayerController( UObject* pWorldContext, int index = 0 )
 	{
-		return TL::Controller<APlayerController>::Get( TL::GetWorld( pWorldContext ), index );
+		return TL::Controller<APlayerController>::Get( UCommonLib::FindWorld( pWorldContext ), index );
 	}
 
 
@@ -90,6 +98,32 @@ public :
 		return pObject ? pObject->GetClass()->GetFName() : NAME_None;
 	}
 
+	UFUNCTION(BlueprintPure, Category="Util|String")
+	static FString GetFileName( FString sPath )
+	{
+		int index_point = INDEX_NONE; 
+		sPath.FindLastChar( TCHAR('.'), index_point );
+		if( INDEX_NONE == index_point )
+			return "Invalid";
+		
+		int index_dir = INDEX_NONE; 
+		sPath.FindLastChar( TCHAR('/'), index_dir );
+
+		if( INDEX_NONE == index_dir )
+			 return sPath.Left( index_point );
+		else
+			 return sPath.Mid( index_dir+1, index_point-index_dir-1  );
+	}	
+
+	UFUNCTION(BlueprintCallable, Category="Util|String")
+	static FString GetDirectoryName( FString sPath )
+	{
+		int index = INDEX_NONE; 
+		sPath.FindLastChar( TCHAR('/'), index );
+		if( INDEX_NONE != index )
+			return sPath.Left( index );
+		return "Invalid";
+	}
 
 // --------------- Debug -----------------------------------------------------
 //	UFUNCTION(BlueprintCallable, Category="Analytics")
@@ -158,28 +192,24 @@ protected :
 
 
 public :
-	FORCEINLINE
 	static void SetTimeDilation( UWorld* pWorld, const float fVal )
 	{
 		check( pWorld );
 		pWorld->GetWorldSettings()->TimeDilation = fVal;
 	}
 
-	FORCEINLINE
 	static void SetTimeDilation( AActor* pActor, const float fVal )
 	{
 		check( pActor );
 		pActor->CustomTimeDilation = fVal;
 	}
 
-	FORCEINLINE
 	static float GetTimeDilation( UWorld* pWorld )
 	{
 		check( pWorld );
 		return pWorld->GetWorldSettings()->TimeDilation;
 	}
 
-	FORCEINLINE
 	static float GetTimeDilation( AActor* pActor )
 	{
 		check( pActor );
@@ -257,8 +287,11 @@ public :
 	UFUNCTION(BlueprintCallable, Category="Util|AI|BB" )
 	static void SetBlackboardValueAsRotator( UBlackboardComponent* pBB, FName KeyName, FRotator Value );
 
+//----------		Edit		---------------------------------------------------
 
-
-
+	static bool IsEditorWorld( const UWorld* pWorld )
+	{
+		return TL::GameMode<AGameModeBase>::Get( pWorld ) ? false : true;
+	}
 
 };

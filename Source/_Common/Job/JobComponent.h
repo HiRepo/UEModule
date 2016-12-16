@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "UObjectThreadContext.h"
+#include "Util/CommonLib.h"
 #include "JobComponent.generated.h"
 
 class UJobComposite;
@@ -77,7 +78,7 @@ protected :
 public :
 	virtual UWorld* GetWorld() const override
 	{
-		return	TL::GetWorld( m_pOwner );
+		return	UCommonLib::FindWorld( m_pOwner );
 	}
 
 	AActor* GetOwner(){ return m_pOwner; }

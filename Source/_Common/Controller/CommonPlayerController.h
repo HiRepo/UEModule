@@ -2,6 +2,7 @@
 #include "GameFramework/PlayerController.h"
 #include "CommonPlayerController.generated.h"
 
+
 class ABaseCameraActor;
 
 UCLASS(placeable)
@@ -21,6 +22,16 @@ private :
 	void OnMouseLeftReleased();
 
 	void _PossessCamera();
+
+	virtual void CalcCamera( float fDeltaTime, struct FMinimalViewInfo& OutResult )
+	{
+		AActor::CalcCamera( fDeltaTime, OutResult );
+	}
+
+	// For Custom SVitualJoystick
+	virtual void CreateTouchInterface() override;
+	virtual void OnJoystickTouchStart(){}
+	virtual void OnJoystickTouchEnd(){}
 
 public:
 	ACommonPlayerController();
@@ -46,15 +57,18 @@ public:
 		pPawn = GetPawn();
 		if( nullptr == pPawn )
 			return ;
-		
-		if( ACommonCharacter* pCharacter = Cast<ACommonCharacter>(pPawn) )
-			AttachToComponent( pCharacter->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale );
 
 		if( m_pCamera )
 			_PossessCamera();
+		else
+			SetViewTarget( this );		
+
+		if( ACommonCharacter* pCharacter = Cast<ACommonCharacter>(pPawn) )
+			AttachToActor( pCharacter, FAttachmentTransformRules::SnapToTargetNotIncludingScale );
 	}
 
 	virtual void UnPossess() override;
 //		virtual void SetViewTargetWithBlend(class AActor* NewViewTarget, float BlendTime = 0, enum EViewTargetBlendFunction BlendFunc = VTBlend_Linear, float BlendExp = 0, bool bLockOutgoing = false);
 //		virtual void SetViewTarget(class AActor* NewViewTarget, FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams());
+
 };

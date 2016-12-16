@@ -100,9 +100,6 @@ protected :
 	UPROPERTY( EditAnywhere, meta=(DisplayName="Component Tag") )
 	FName 	m_CompTag = NAME_None;	// Selector. if Tag is None, not filtering.
 
-	UPROPERTY( EditAnywhere, meta=(DisplayName="Tag") )
-	TArray<FName> m_Tag;		
-
 	UPROPERTY( EditAnywhere, meta=(DisplayName="Ignore Other Actor") )
 	bool 	m_bIgnoreOtherActor = true;		
 
@@ -120,7 +117,7 @@ protected :
 
 	UPROPERTY( EditAnywhere, meta=(DisplayName="+Data Array") )
 	TArray<FMatData> m_Datas;
-	
+
 private :
 	friend class UJobMaterial;
 
@@ -312,8 +309,9 @@ protected :
 
 	void _ResetMatArray()
 	{
-		for( FJobMat& rJobMat :	JobMatArray )
+		for( auto& elem : m_JobMatData )
 		{
+			FJobMat& rJobMat = elem.Value;
 			rJobMat.m_MatArray.Reset();
 			rJobMat.m_MIDArray.Reset();
 		}
@@ -321,45 +319,48 @@ protected :
 	
 	void _init(){	}
 
+protected :
+	UPROPERTY( EditAnywhere, Category="JobComponent" )
+	TMap<FName, FJobMat> m_JobMatData;
+
+	FJobMat* _FindFirstData()
+	{
+		if( m_JobMatData.Num() )
+			return &m_JobMatData.CreateIterator().Value();
+		return nullptr;
+	}
+
 public :
 	UJobMaterial()
 	{ m_EnableTick = true; }
 
-	UPROPERTY( EditAnywhere, Category="JobComponent" )
-	TArray<FJobMat> JobMatArray;
-
- 	FJobMat& operator[]( int idx ) 
+ 	const FJobMat& operator[]( const FName key ) const
  	{ 
-		check( JobMatArray.IsValidIndex( idx ) );
- 		return JobMatArray[idx]; 
+		check( m_JobMatData.Contains( key ) );
+ 		return m_JobMatData[key]; 
  	}
 
-	FJobMat& GetJobMat( int idx = 0 )
+ 	FJobMat& operator[]( const FName key )
+ 	{ 
+ 		return m_JobMatData.FindOrAdd( key ); 
+ 	}
+
+	FJobMat* FindJobMat( FName key )
 	{
-		return (*this)[ idx ];
+		return m_JobMatData.Find( key );
 	}
 
-	FJobMat* FindJobMat( FName tag )
+	void RebuildMat( FName key, bool isCreateMID = true )
 	{
-		for( FJobMat& rJobMat :	JobMatArray )
-		{
-			if( rJobMat.m_Tag.Contains(tag) )
-				return &rJobMat;
-		}
-		return nullptr;
-	}
-
-	void RebuildMat( int idx, bool isCreateMID = true )
-	{
-		RebuildMat( (*this)[idx], isCreateMID );
+		RebuildMat( (*this)[key], isCreateMID );
 	}
 
 	// Rebuild MID All
 	void RebuildMat( bool isCreateMID = true )
 	{
-		for( FJobMat& rJobMat :	JobMatArray )
+		for( auto& elem : m_JobMatData )
 		{
-			RebuildMat( rJobMat, isCreateMID );
+			RebuildMat( elem.Value, isCreateMID );
 		}
 	}
 
@@ -406,51 +407,61 @@ public :
 
 	}
 
-	void SetSourceFromMaterial( int jobMatIdx )
+	void SetSourceFromMaterial( FName key )
 	{
-		(*this)[jobMatIdx].SetSourceFromMaterial();
+		(*this)[key].SetSourceFromMaterial();
 	}
 
-	void SetSourceFromMaterial( int jobMatIdx, int dataIdx )
+	void SetSourceFromMaterial( FName key, int dataIdx )
 	{
-		(*this)[jobMatIdx].SetSourceFromMaterial( dataIdx );
+		(*this)[key].SetSourceFromMaterial( dataIdx );
 	}
 
 	void SetSourceFromMaterial()
 	{
-		for( FJobMat& rJobMat :	JobMatArray )
-			rJobMat.SetSourceFromMaterial();
+		for( auto& elem : m_JobMatData )
+		{
+			elem.Value.SetSourceFromMaterial();
+		}
 	}
 
-
-	FMatData& GetMatData( int jobMatIdx = 0, int dataIdx = 0  )
+	FMatData& GetMatData( FName key=NAME_None, int dataIdx = 0  )
 	{
-		return (*this)[jobMatIdx][dataIdx];
+		return (*this)[key][dataIdx];
 	}
 
-	void SetTime( const float fTime, int jobMatIdx = 0 )
+	void SetTime( const float fTime, FName key =NAME_None )
 	{
-		(*this)[jobMatIdx].SetTime( fTime );
+		if( key == NAME_None )
+		{
+			if( FJobMat* pJobMat = _FindFirstData() )
+				(*pJobMat).SetTime( fTime );
+		}
+		else
+			(*this)[key].SetTime( fTime );
 	}
 
-
-	void Assign( FJobMat& rJobMat, int jobMatIdx =0 )
+	void Assign( FMatData& rMatData, FName key, int dataIdx = 0 )
 	{
-		(*this)[jobMatIdx] = rJobMat;
+		(*this)[key][dataIdx] = rMatData;
 	}
 
-	void Assign( FMatData& rMatData, int jobMatIdx, int dataIdx = 0 )
+	void AppendMatData( FName key )
 	{
-		(*this)[jobMatIdx][jobMatIdx] = rMatData;
+		if( false ==  m_JobMatData.Contains( key ) )
+			m_JobMatData.Add( key );
 	}
 
-	void AppendMatData( FJobMat& rJobMat, bool isCreateMID = false )
+	void AppendMatData( FName key, FJobMat& rJobMat, bool isCreateMID = false )
 	{
-		JobMatArray.Add( rJobMat );
+		if( m_JobMatData.Contains( key ) )
+			m_JobMatData[key] = rJobMat;
+		else
+			m_JobMatData.Add( key, rJobMat );
 		RebuildMat( rJobMat, isCreateMID );
 	}
 
-	void AppendMatData( FName baseMatName = NAME_None, FName compTag = NAME_None, 
+	void AppendMatData( FName key, FName baseMatName = NAME_None, FName compTag = NAME_None, 
 		FName paraName = NAME_None, EMatParamLeng eMatParamLeng =EMatParamLeng::Vector, 
 		ETweenFlow eMatFlow = ETweenFlow::Forward, bool isCreateMID = false )
 	{
@@ -463,17 +474,16 @@ public :
 		matData.SetData( paraName, eMatParamLeng, eMatFlow );
 		jobMat.m_Datas.Add( matData );
 		
-		JobMatArray.Add( jobMat );
-
-		RebuildMat( jobMat, isCreateMID );
+		AppendMatData( key, jobMat, isCreateMID );
 
 		jobMat.SetSourceFromMaterial();
 	}
 
 	bool IsPlayState()
 	{
-		for( FJobMat& rJobMat :	JobMatArray )
+		for( auto& elem : m_JobMatData )
 		{
+			FJobMat& rJobMat = elem.Value;
 			if( rJobMat.m_bPlay )
 				return true;
 		}
@@ -483,29 +493,54 @@ public :
 
 protected :
 #if WITH_EDITOR
-	virtual void PostEditChangeChainProperty( struct FPropertyChangedChainEvent& rPropertyChangedEvent ) override
-	{
-		const int _indexMat = rPropertyChangedEvent.GetArrayIndex( "JobMatArray" );
-		const int _indexData = rPropertyChangedEvent.GetArrayIndex( "m_Datas" );
 
-		for( auto* pNode = rPropertyChangedEvent.PropertyChain.GetActiveNode(); pNode; pNode = pNode->GetNextNode() )
+	virtual void PostEditChangeProperty( FPropertyChangedEvent& rPropertyChangedEvent ) override
+	{
+		if( nullptr == rPropertyChangedEvent.Property )			
+			return	Super::PostEditChangeProperty(rPropertyChangedEvent);
+
+		const FName _memberName = rPropertyChangedEvent.MemberProperty->GetFName();
+		const FName _propertyName = rPropertyChangedEvent.Property->GetFName();
+		if( _memberName == "m_JobMatData" )
 		{
-			FName name = pNode->GetValue()->GetFName();
-			if( "m_fElapseTime" == name || "m_fTime" == name )
-				JobMatArray[_indexMat]();
+			if( "m_fElapseTime" == _propertyName || "m_fTime" == _propertyName )
+				(*this)();
 			else
-			if( "m_CompTag" == name || "m_BaseName" == name )
-				RebuildMat( _indexData );
+			if( "m_CompTag" == _propertyName || "m_BaseName" == _propertyName )
+				RebuildMat();
 			else
-			if( "m_Tween" == name )
+			if( "m_Tween" == _propertyName )
 			{
-				RebuildMat( _indexData );
-				JobMatArray[_indexMat]();
+				RebuildMat();
+				(*this)();
 			}
 		}
-
-		Super::PostEditChangeChainProperty( rPropertyChangedEvent );
+		Super::PostEditChangeProperty(rPropertyChangedEvent);
 	}
+
+//		virtual void PostEditChangeChainProperty( struct FPropertyChangedChainEvent& rPropertyChangedEvent ) override
+//		{
+//			const int _indexMat = rPropertyChangedEvent.GetArrayIndex( "JobMatArray" );
+//			const int _indexData = rPropertyChangedEvent.GetArrayIndex( "m_Datas" );
+//	
+//			for( auto* pNode = rPropertyChangedEvent.PropertyChain.GetActiveNode(); pNode; pNode = pNode->GetNextNode() )
+//			{
+//				FName name = pNode->GetValue()->GetFName();
+//				if( "m_fElapseTime" == name || "m_fTime" == name )
+//					JobMatArray[_indexMat]();
+//				else
+//				if( "m_CompTag" == name || "m_BaseName" == name )
+//					RebuildMat( _indexData );
+//				else
+//				if( "m_Tween" == name )
+//				{
+//					RebuildMat( _indexData );
+//					JobMatArray[_indexMat]();
+//				}
+//			}
+//	
+//			Super::PostEditChangeChainProperty( rPropertyChangedEvent );
+//		}
 #endif
 
 
@@ -513,8 +548,9 @@ protected :
 	{
 		Super::Tick( fDeltaTime );
 		bool isPlay = false;
-		for( FJobMat& rJobMat :	JobMatArray )
+		for( auto& elem : m_JobMatData )
 		{
+			FJobMat& rJobMat = elem.Value;
 			if( rJobMat.IsPlaying() )
 			{
 				isPlay = true;
@@ -526,10 +562,11 @@ protected :
 		if( false == isPlay )
 			return;
 
-		(*this)();			// Do Job 
+		Update();
 
-		for( FJobMat& rJobMat :	JobMatArray )
+		for( auto& elem : m_JobMatData )
 		{
+			FJobMat& rJobMat = elem.Value;
 			if( false == rJobMat.IsPlaying() )
 				continue;
 
@@ -548,8 +585,9 @@ public :
 	bool IsPlaying()
 	{
 		bool isPlaying = false;
-		for( FJobMat& rJobMat :	JobMatArray )
+		for( auto& elem : m_JobMatData )
 		{
+			FJobMat& rJobMat = elem.Value;
 			if( rJobMat.IsPlaying() )
 			{
 				isPlaying = true;
@@ -559,24 +597,46 @@ public :
 		return isPlaying;
 	}
 
-	void Play( int jobMatIdx = 0 )
+	void Play( FName key =NAME_None )
 	{
-		(*this)[jobMatIdx].Play();
+		if( key == NAME_None )
+		{
+			if( FJobMat* pJobMat = _FindFirstData() )
+				(*pJobMat).Play();
+		}
+		else
+			(*this)[key].Play();
 	}
 
-	void Stop( int jobMatIdx = 0 )
+	void Stop( FName key =NAME_None )
 	{
-		(*this)[jobMatIdx].Stop();
+		if( key == NAME_None )
+		{
+			if( FJobMat* pJobMat = _FindFirstData() )
+				(*pJobMat).Stop();
+		}
+		else
+			(*this)[key].Stop();
 	}
 
 public :
-	virtual void operator()() override
+	void Update()
 	{
 		Super::operator()();
-		for( FJobMat& rJobMat :	JobMatArray )
+
+		for( auto& elem : m_JobMatData )
 		{
+			FJobMat& rJobMat = elem.Value;
 			if( rJobMat.IsPlaying() )
 				rJobMat();
+		}
+	}
+
+	virtual void operator()() override
+	{
+		for( auto& elem : m_JobMatData )
+		{
+			elem.Value();
 		}
 	}
 };

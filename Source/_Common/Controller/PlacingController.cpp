@@ -80,7 +80,7 @@ void APlacingController::Tick(float DeltaSeconds)
 	}
 	if (count == 1000)
 	{
-		AGameMode* pGameMode = UGameplayStatics::GetGameMode(GetWorld());
+		AGameModeBase* pGameMode = UGameplayStatics::GetGameMode(GetWorld());
 		//pGameMode->InitNew
 		//basePlayerController
 

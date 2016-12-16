@@ -15,6 +15,27 @@ bool UCommonLib::IsGamePlaying( UWorld* pWorld )
 	return false;
 }
 
+UWorld* UCommonLib::FindWorld( const UObject* pObject )
+{
+	if( nullptr == pObject )
+		return nullptr;
+	UWorld* pWorld = pObject->GetWorld();
+	if( pWorld )
+		return pWorld;
+
+	for( UObject* pOuter = pObject->GetOuter(); pOuter; pOuter = pOuter->GetOuter() )
+	{
+		pWorld = pOuter->GetWorld();
+		if( pWorld )
+			return pWorld;
+	}
+
+	bool bSupported = true;
+	pWorld = pObject->GetWorldChecked( bSupported );
+	return bSupported ? pWorld : GWorld;
+}
+
+
 //--------------		Json 	----------------------------------------------------
 void UCommonLib::JSonToString( const TSharedPtr<FJsonObject> jObject, FString& outString )
 {	

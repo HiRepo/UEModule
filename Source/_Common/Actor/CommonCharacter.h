@@ -9,7 +9,7 @@ class UJobAniTransform;
 class UJobBehaviorTree;
 class ACommonAIController;
 
-UCLASS(ClassGroup=(Common,Actor))
+UCLASS(Blueprintable, ClassGroup=(Common,Actor))
 class _COMMON_API ACommonCharacter : public ACharacter
 {
 	GENERATED_BODY()

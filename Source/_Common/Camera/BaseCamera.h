@@ -16,6 +16,7 @@ public :
 	UBaseCamera( AActor* pActor ) : UBaseCamera() {}	
 
 	virtual float GetLength(){	return 0; }
+	virtual void  SetLength( float fLength ){}
 
 	FORCEINLINE
 	void ZoomIn( float fDelta ) 	{ _Zoom( fDelta ); }

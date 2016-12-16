@@ -1,5 +1,6 @@
 #include "_Common.h"
 #include "Engine.h"
+#include "SVirtualJoystick.h"
 #include "Camera/BaseCameraActor.h"
 #include "Camera/SpringArmCamera.h"
 #include "CommonAIController.h"
@@ -7,16 +8,8 @@
 
 ACommonPlayerController::ACommonPlayerController()
 {
-	if( UWorld* pWorld = GetWorld() )
-	{
-		ABaseCameraActor* pCamera = Cast<ABaseCameraActor>(pWorld->SpawnActor(ABaseCameraActor::StaticClass()));
-#if WITH_EDITOR
-		pCamera->SetActorLabel("_BaseCameraActor");
-#endif
-		USceneComponent* pCameraRootComponent =	pCamera->GetRootComponent();
-		if( false == pCameraRootComponent->IsRegistered() )
-   			pCameraRootComponent->SetupAttachment( GetRootComponent() );
-	}
+	bFindCameraComponentWhenViewTarget = true;
+	//bTakeCameraControlWhenPossessed = true;
 
 	SetAsLocalPlayerController();
 
@@ -24,7 +17,6 @@ ACommonPlayerController::ACommonPlayerController()
 	bEnableClickEvents = true;
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
-
 }
 
 
@@ -44,7 +36,7 @@ void ACommonPlayerController::_PossessCamera()
 	SetViewTarget(m_pCamera);
 }
 
-void ACommonPlayerController::SetCamera(ABaseCameraActor* pCamera )
+void ACommonPlayerController::SetCamera( ABaseCameraActor* pCamera )
 {	
 	check(pCamera);
 	m_pCamera = pCamera;
@@ -53,6 +45,17 @@ void ACommonPlayerController::SetCamera(ABaseCameraActor* pCamera )
 
 void ACommonPlayerController::BeginPlay()
 {
+//		if( UWorld* pWorld = GetWorld() )
+//		{
+//			ABaseCameraActor* pCamera = Cast<ABaseCameraActor>(pWorld->SpawnActor(ABaseCameraActor::StaticClass()));
+//	#if WITH_EDITOR
+//			pCamera->SetActorLabel("_BaseCameraActor");
+//	#endif
+//			USceneComponent* pCameraRootComponent =	pCamera->GetRootComponent();
+//			pCamera->AttachToActor( this, FAttachmentTransformRules::SnapToTargetNotIncludingScale );
+//			m_pCamera = pCamera;
+//		}
+
 	Super::BeginPlay();
 	APawn* pPawn = GetPawn();
 }
@@ -74,6 +77,9 @@ void ACommonPlayerController::UnPossess()
 	
 	if( nullptr == pCharacter )
 		return;
+
+	// ReAttach  
+	AttachToPawn( pCharacter );
 
 	// Default AI Controller Possesss
 	pCharacter->PossessedFromAI();
@@ -171,3 +177,69 @@ void ACommonPlayerController::SetupInputComponent()
 }
 
 
+DECLARE_DELEGATE( FTouchStartDelegate );
+DECLARE_DELEGATE( FTouchEndDelegate );
+
+class SNewVirtualJoystick : public SVirtualJoystick
+{
+friend class ACommonPlayerController;
+private :
+	FTouchStartDelegate m_TouchStartDelegate; 
+	FTouchEndDelegate   m_TouchEndDelegate;
+
+	virtual FReply OnTouchStarted( const FGeometry& MyGeometry, const FPointerEvent& Event ) override
+	{
+		FReply reply = SVirtualJoystick::OnTouchStarted( MyGeometry, Event );
+//			if( reply =! FReply::Unhandled() )
+			m_TouchStartDelegate.Execute(); 
+		return reply;
+	}
+	virtual FReply OnTouchEnded(const FGeometry& MyGeometry, const FPointerEvent& Event) override
+	{
+		FReply reply = SVirtualJoystick::OnTouchEnded( MyGeometry, Event );
+//			if( reply =! FReply::Unhandled() )
+			m_TouchEndDelegate.Execute(); 
+		return reply;
+	}
+};
+
+void ACommonPlayerController::CreateTouchInterface() 		// Copy From Version 14.1 
+{
+	ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+
+	// do we want to show virtual joysticks?
+	if (LocalPlayer && LocalPlayer->ViewportClient && SVirtualJoystick::ShouldDisplayTouchInterface())
+	{
+		// in case we already had one, remove it
+		if (VirtualJoystick.IsValid())
+		{
+			Cast<ULocalPlayer>(Player)->ViewportClient->RemoveViewportWidgetContent(VirtualJoystick.ToSharedRef());
+		}
+
+		if (CurrentTouchInterface == nullptr)
+		{
+			// load what the game wants to show at startup
+			FStringAssetReference DefaultTouchInterfaceName = GetDefault<UInputSettings>()->DefaultTouchInterface;
+
+			if (DefaultTouchInterfaceName.IsValid())
+			{
+				// activate this interface if we have it
+				CurrentTouchInterface = LoadObject<UTouchInterface>(NULL, *DefaultTouchInterfaceName.ToString());
+			}
+		}
+
+		if (CurrentTouchInterface)
+		{
+			// create the joystick 
+			TSharedPtr<SNewVirtualJoystick> joystick = SNew(SNewVirtualJoystick);
+			joystick->m_TouchStartDelegate.BindUObject( this, &ACommonPlayerController::OnJoystickTouchStart );
+			joystick->m_TouchEndDelegate.BindUObject( this, &ACommonPlayerController::OnJoystickTouchEnd );
+			VirtualJoystick = joystick;
+
+			// add it to the player's viewport
+			LocalPlayer->ViewportClient->AddViewportWidgetContent(VirtualJoystick.ToSharedRef());
+
+			ActivateTouchInterface(CurrentTouchInterface);
+		}
+	}
+}

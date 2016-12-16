@@ -12,7 +12,7 @@ protected :
 private :
 
 public:
-	ACommonAIController(){};
+	ACommonAIController(){}
 
 	virtual void Possess( APawn* pPawn ) override;
 

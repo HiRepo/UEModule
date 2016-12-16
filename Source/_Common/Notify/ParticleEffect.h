@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Animation/AnimNotifies/AnimNotify.h"
 #include "Component/ParticleComponent.h"
 #if WITH_EDITOR
 #include "Edit/TL.h"

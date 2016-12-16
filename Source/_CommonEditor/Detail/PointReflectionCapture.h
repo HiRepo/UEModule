@@ -2,10 +2,10 @@
 #include "Engine/ReflectionCapture.h"
 #include "DetailLayoutBuilder.h"
 #include "IDetailsView.h"
+#include "Editor/LevelEditor/Public/LevelEditor.h"
 #include "DetailCategoryBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailCustomization.h"
-#include "LevelEditor.h"
 #include "Actor/PointReflectionCapture.h"
 
 class PointReflectionCaptureDetails: public IDetailCustomization

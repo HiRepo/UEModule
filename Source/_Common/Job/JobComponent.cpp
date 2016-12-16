@@ -56,7 +56,7 @@ void UJobTimeDilation::_UpdateCurTimeDilation()
 	if( UJobActorComposite* pJobActorComposite = GetRootComposite()->GetJobActorComposite() )
 	{
 		UWorld* pWorld = pJobActorComposite->GetWorld();
-		if( TL::IsEditorWorld( pWorld ) )
+		if( UCommonLib::IsEditorWorld( pWorld ) )
 			UCommonLib::SetTimeDilation( pWorld, fTimeDilation );
 
 		USkeletalMeshComponent* pSkeleton = Cast<USkeletalMeshComponent>( pJobActorComposite->GetAttachParent() );

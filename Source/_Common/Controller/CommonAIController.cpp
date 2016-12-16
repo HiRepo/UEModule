@@ -12,7 +12,8 @@ void ACommonAIController::Possess( APawn* pPawn )
 //	UE_LOG( _Common, Error, TEXT("ACommonAIController::Possess ") );
 		
 	ACommonCharacter* pCharacter = Cast<ACommonCharacter>( pPawn );
-	AttachToComponent( pCharacter->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale );
+	if( nullptr == pCharacter )
+		return;
 
 	pCharacter->OnPossessAI( this );
 
@@ -22,17 +23,25 @@ void ACommonAIController::Possess( APawn* pPawn )
 	{
 		pJobController->Possess( pPawn );
 	}
+
+	if( GetAttachParentActor() != pCharacter )
+		AttachToActor( pCharacter, FAttachmentTransformRules::SnapToTargetNotIncludingScale );
 }
 
 
 void ACommonAIController::UnPossess()
 {
+	ACommonCharacter* pCharacter = Cast<ACommonCharacter>(	GetPawn() );
+
 	TArray<UJobComponentController*> jControllerArray;
-	TL::Job<UJobComponentController>::GetAll( GetPawn(), jControllerArray );
+	TL::Job<UJobComponentController>::GetAll( pCharacter, jControllerArray );
 	for( UJobComponentController* pJobController : jControllerArray )
 	{
 		pJobController->UnPossess();
 	}
 
 	Super::UnPossess();
+
+	if( nullptr == pCharacter )
+		return;
 }

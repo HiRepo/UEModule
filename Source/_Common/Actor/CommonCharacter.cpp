@@ -11,11 +11,12 @@
 
 ACommonCharacter::ACommonCharacter()
 {
+//		bFindCameraComponentWhenViewTarget = false;
+
 	m_JobActorComposite = CreateDefaultSubobject<UJobActorComposite>( "JobActorComposite" );
 	GetRootComponent()->SetupAttachment( m_JobActorComposite );
 
 	m_JobMaterial = TL::Create<UJobMaterial>::SubInit( this, "JobMaterial" );
-	m_JobMaterial->AppendMatData();				// Append Default FJobMat
 
 	m_JobTimeDilation = TL::Create<UJobTimeDilation>::SubInit( this, "JobTimeDilation" );
 
@@ -29,8 +30,6 @@ void ACommonCharacter::PostLoadSubobjects( FObjectInstancingGraph* pOuterInstanc
 	Super::PostLoadSubobjects( pOuterInstanceGraph );
 
 	m_JobMaterial->RebuildMat( true );
-
-	m_JobMaterial->SetSourceFromMaterial( 0 );	// Default FJobMat's source data is initialized from Material.
 }
 
 
