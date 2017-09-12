@@ -3,6 +3,7 @@
 #include "SVirtualJoystick.h"
 #include "Camera/BaseCameraActor.h"
 #include "Camera/SpringArmCamera.h"
+#include "Actor/CommonCharacter.h"
 #include "CommonAIController.h"
 #include "CommonPlayerController.h"
 
@@ -34,6 +35,24 @@ void ACommonPlayerController::_PossessCamera()
 	m_pCamera->SetActorRelativeLocation(FVector::ZeroVector);
 
 	SetViewTarget(m_pCamera);
+}
+
+void ACommonPlayerController::Possess( APawn* pPawn )
+{
+	Super::Possess( pPawn );
+		UE_LOG( _Common, Error, TEXT("ACommonPlayerController::Possess ") );
+
+	pPawn = GetPawn();
+	if( nullptr == pPawn )
+		return ;
+
+	if( m_pCamera )
+		_PossessCamera();
+	else
+		SetViewTarget( this );		
+
+	if( ACommonCharacter* pCharacter = Cast<ACommonCharacter>(pPawn) )
+		AttachToActor( pCharacter, FAttachmentTransformRules::SnapToTargetNotIncludingScale );
 }
 
 void ACommonPlayerController::SetCamera( ABaseCameraActor* pCamera )

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "BehaviorTree/BTTaskNode.h"
 #include "BTTask_BP.generated.h"
 
 // this is for Blueprint's parent

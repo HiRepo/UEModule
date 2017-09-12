@@ -49,23 +49,7 @@ public:
 
 	virtual void SetupInputComponent() override;
 	
-	virtual void Possess( APawn* pPawn ) override
-	{
-		Super::Possess( pPawn );
-//			UE_LOG( _Common, Error, TEXT("ACommonPlayerController::Possess ") );
-
-		pPawn = GetPawn();
-		if( nullptr == pPawn )
-			return ;
-
-		if( m_pCamera )
-			_PossessCamera();
-		else
-			SetViewTarget( this );		
-
-		if( ACommonCharacter* pCharacter = Cast<ACommonCharacter>(pPawn) )
-			AttachToActor( pCharacter, FAttachmentTransformRules::SnapToTargetNotIncludingScale );
-	}
+	virtual void Possess( APawn* pPawn ) override;
 
 	virtual void UnPossess() override;
 //		virtual void SetViewTargetWithBlend(class AActor* NewViewTarget, float BlendTime = 0, enum EViewTargetBlendFunction BlendFunc = VTBlend_Linear, float BlendExp = 0, bool bLockOutgoing = false);

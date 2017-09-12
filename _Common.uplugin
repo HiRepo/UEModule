@@ -16,18 +16,6 @@
 			"Name" : "_Common",
 			"Type" : "Runtime",
 			"LoadingPhase" : "PreDefault"
-		},
-		{
-			"Name" : "_CommonEditor",
-			"Type" : "Editor",
-			"LoadingPhase" : "PostEngineInit",
-			"WhitelistPlatforms" :
-			[
-				"Win64",
-				"Win32",
-				"Mac",
-				"Linux"
-			]
 		}
 	]
 }
